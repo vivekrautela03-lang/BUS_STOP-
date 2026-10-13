@@ -135,19 +135,69 @@ function dismissSplash() {
 window.dismissSplash = dismissSplash;
 
 // ==========================================================================
-// 2. REAL SUPABASE AUTHENTICATION INITIALIZATION
+// 2. RESILIENT API COMMUNICATION & REAL SUPABASE AUTH INITIALIZATION
 // ==========================================================================
+function getApiEndpointUrl(endpoint) {
+  if (!endpoint) return '';
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) return endpoint;
+  if (typeof window.getApiUrl === 'function') {
+    return window.getApiUrl(endpoint);
+  }
+  if (window.location.port !== '3000' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')) {
+    return `http://localhost:3000${endpoint}`;
+  }
+  return endpoint;
+}
+window.getApiEndpointUrl = getApiEndpointUrl;
+
+async function safeApiFetch(endpoint, options = {}) {
+  const fullUrl = getApiEndpointUrl(endpoint);
+  try {
+    const res = await fetch(fullUrl, options);
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const data = await res.json();
+      return { ok: res.ok, status: res.status, data };
+    }
+    const text = await res.text();
+    // Catch HTML error pages (e.g. Live Server or static host 404s)
+    if (text.trim().startsWith('<') || text.includes('<!DOCTYPE')) {
+      return {
+        ok: false,
+        status: res.status,
+        data: {
+          error: `Backend server at ${fullUrl} returned HTML (${res.status}). Make sure the backend server is running via 'node server.js' on port 3000.`
+        }
+      };
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = { error: text || `HTTP ${res.status}` };
+    }
+    return { ok: res.ok, status: res.status, data: parsed };
+  } catch (err) {
+    return {
+      ok: false,
+      status: 0,
+      data: {
+        error: `Could not connect to backend server at ${fullUrl}. Please check network connection or start 'node server.js'.`
+      }
+    };
+  }
+}
+window.safeApiFetch = safeApiFetch;
+
 async function initSupabase() {
   try {
-    const res = await fetch('/api/supabase-config');
-    if (!res.ok) {
-      throw new Error(`Failed to fetch Supabase config: ${res.status}`);
-    }
-    const { supabaseUrl, supabaseAnonKey } = await res.json();
+    let supabaseUrl = window.__ENV__?.SUPABASE_URL || 'https://tmacsdrjzkgykfkkrhgm.supabase.co';
+    let supabaseAnonKey = window.__ENV__?.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtYWNzZHJqemtneWtma2tyaGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNTk4ODUsImV4cCI6MjEwNjgzNTg4NX0.yv0sJe2lQyAzSxDcy4TPkVjqdyrWD7wxvF9DA4ays-U';
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.warn('Supabase configuration missing from server response.');
-      return;
+    const { ok, data } = await safeApiFetch('/api/supabase-config');
+    if (ok && data && data.supabaseUrl && data.supabaseAnonKey) {
+      supabaseUrl = data.supabaseUrl;
+      supabaseAnonKey = data.supabaseAnonKey;
     }
 
     const supabaseLib = window.supabase;
@@ -1391,14 +1441,13 @@ async function onLoginSubmit(event) {
   `;
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const { ok, status, data: result } = await safeApiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: emailVal, password: passVal })
     });
-    const result = await res.json();
 
-    if (res.ok && result.success && result.user) {
+    if (ok && result && result.success && result.user) {
       localStorage.setItem('bus_stop_active_user', JSON.stringify(result.user));
       showNotice(`Welcome back, ${result.user.full_name || emailVal}! Verified with database 🚏`);
       handleAuthStateChange(result.user);
@@ -1407,11 +1456,34 @@ async function onLoginSubmit(event) {
       if (supabaseClient) {
         supabaseClient.auth.signInWithPassword({ email: emailVal, password: passVal }).catch(() => {});
       }
-    } else {
-      showNotice(result.error || 'Invalid email or password.');
-      passBox.classList.add('has-error');
-      passInput.focus();
+      return;
     }
+
+    // Resilient Fallback 1: If backend server is unreachable or offline, attempt direct Supabase authentication
+    if (supabaseClient && (!ok && (!status || status === 404 || status >= 500))) {
+      try {
+        const { data: supaData, error: supaErr } = await supabaseClient.auth.signInWithPassword({
+          email: emailVal,
+          password: passVal
+        });
+        if (!supaErr && supaData?.user) {
+          const userObj = {
+            id: supaData.user.id,
+            email: supaData.user.email,
+            full_name: supaData.user.user_metadata?.full_name || emailVal.split('@')[0],
+            role: supaData.user.user_metadata?.role || (emailVal.includes('driver') ? 'driver' : 'passenger')
+          };
+          localStorage.setItem('bus_stop_active_user', JSON.stringify(userObj));
+          showNotice(`Welcome back, ${userObj.full_name}! Authenticated with Supabase 🚏`);
+          handleAuthStateChange(userObj);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    showNotice(result?.error || 'Invalid email or password.');
+    passBox.classList.add('has-error');
+    passInput.focus();
   } catch (err) {
     console.error('Login error:', err);
     showNotice(err.message || 'Login connection error.');
@@ -1478,7 +1550,7 @@ async function onSignUpSubmit(event) {
   `;
 
   try {
-    const regRes = await fetch('/api/auth/register', {
+    const { ok, data: regJson } = await safeApiFetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1489,15 +1561,14 @@ async function onSignUpSubmit(event) {
         role: 'passenger'
       })
     });
-    const regJson = await regRes.json();
 
-    if (regRes.ok && regJson.success && regJson.user) {
+    if (ok && regJson && regJson.success && regJson.user) {
       localStorage.setItem('bus_stop_active_user', JSON.stringify(regJson.user));
       showNotice(`Account verified! Welcome aboard, ${nameVal} 🚏`);
       handleAuthStateChange(regJson.user);
     } else {
-      showNotice(regJson.error || 'Could not register account.');
-      if (regJson.error && regJson.error.includes('already exists')) {
+      showNotice(regJson?.error || 'Could not register account.');
+      if (regJson?.error && regJson.error.includes('already exists')) {
         switchMode('login');
         document.getElementById('loginEmail').value = emailVal;
         document.getElementById('loginPassword').focus();
@@ -1730,9 +1801,21 @@ async function onForgotPassword(event) {
 }
 
 // ==========================================================================
-// 8. TOAST NOTIFICATIONS
+// 8. TOAST NOTIFICATIONS (WITH DEDUPLICATION & DEBOUNCE)
 // ==========================================================================
+let lastNoticeText = '';
+let lastNoticeTime = 0;
+
 function showNotice(message) {
+  if (!message) return;
+  const now = Date.now();
+  // Prevent duplicate toasts within 1500ms
+  if (message === lastNoticeText && now - lastNoticeTime < 1500) {
+    return;
+  }
+  lastNoticeText = message;
+  lastNoticeTime = now;
+
   const container = document.getElementById('toastStream');
   if (!container) return;
 
