@@ -2,8 +2,8 @@
   {
     "id": "2e7c3865-4fda-42ed-b46d-141356e88003",
     "email": "vivekrautela03@gmail.com",
-    "password_hash": "1fb0ba56a0ec14cbe0b7178eada1044631fddab83934e695b55cb66c644019a18ecf433f9fda8aa962f2f005fa74a6e7f1fa0d8f3bab1994876a9adb27108e80",
-    "salt": "cb862d9b3123d7ccbc946087f780415b",
+    "password_hash": "e97531d932e5fd529ac03f58614d7d803f6efd06fa77b244d55190ea83acac35a64cae2a38a83fcf561b9a9d5cb5794156dac446275816b3fc3b86bc8272e220",
+    "salt": "af1df134665bd19c1afbce34e0fe128b",
     "full_name": "vivek rautela",
     "phone": "+919068850966",
     "role": "passenger",
@@ -12,7 +12,7 @@
     "shift_status": "Active Pass Holder",
     "avatar_url": "assets/onboarding/who_passenger_thumb.jpg",
     "created_at": "2026-10-06T07:23:50.873Z",
-    "updated_at": "2026-10-06T09:13:52.387Z",
+    "updated_at": "2026-10-13T14:43:35.937Z",
     "dob": "10 Jul 2007",
     "gender": "Male",
     "home_location": "Dehradun, Uttarakhand",
@@ -21,8 +21,8 @@
   {
     "id": "733ca121-d639-47f4-8e59-17d107a4e46d",
     "email": "shivanshmourya078@gmail.com",
-    "password_hash": "baa42e34a1c1ec0262b97b4716d1247ec86ec828b88e2d339219b85b85f44003c8a4f43b331d8c0da09b61be1149b4a2324f0e81a8cd05d1a4e431c35ecd8171",
-    "salt": "c8def8ed7887daaf6543460ebfe8c568",
+    "password_hash": "afda6fab6c7787cf471373565673a7ca606248aa95f72ef053753a81293e5b8bdc17c23a8208bbc2b1578c941c2795dcb20d1e84592f7d066388cf4d547ae328",
+    "salt": "d8ee4b658a2ac1a42c730296880bde48",
     "full_name": "Shivansh Mourya",
     "phone": "8439238588",
     "role": "driver",
@@ -47,13 +47,13 @@
     },
     "document_status": "Verified",
     "created_at": "2026-10-06T10:07:30.694Z",
-    "updated_at": "2026-10-13T07:35:20.020Z"
+    "updated_at": "2026-10-13T14:43:35.962Z"
   },
   {
     "id": "2900b113-150a-4ede-9fe6-c7b67dece3b8",
     "email": "avantikam936@gmail.com",
-    "password_hash": "2e72c57d376d7ed0e87952f027ccc63c9e52828c0742e341672527a2cb5c51928dd581534fb78cfedab37f42f7f0a936ad091003bb487ce7e0a1f108d60b4b55",
-    "salt": "a73e59e14b29b95f21fdd1da7019774f",
+    "password_hash": "d06b3f91a0f09688ba7fdf98895755434fa387a7a4aae37bcf9a40e88fa614ef6f51b2087108e530dfd8116d3532465c04bed5b5ede31c185e5d4481d5f8cda5",
+    "salt": "37538ca8722686df2844c36bac5a89c4",
     "full_name": "avantika mishra",
     "phone": "+919068850966",
     "role": "passenger",
@@ -71,6 +71,6 @@
     "documents": {},
     "document_status": "Verified",
     "created_at": "2026-10-08T18:45:34.379Z",
-    "updated_at": "2026-10-08T18:45:34.379Z"
+    "updated_at": "2026-10-13T14:43:35.987Z"
   }
 ]

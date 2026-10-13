@@ -161,17 +161,44 @@ async function initSupabase() {
     supabaseClient = supabaseLib.createClient(supabaseUrl, supabaseAnonKey);
     window.supabaseClient = supabaseClient;
 
-    // 1. Always start at the Login / Sign Up landing screen on load
-    handleAuthStateChange(null);
+    // 1. Session restoration on load: Check if passenger or driver is already logged in
+    const savedUserStr = localStorage.getItem('bus_stop_active_user');
+    if (savedUserStr) {
+      try {
+        const savedUser = JSON.parse(savedUserStr);
+        if (savedUser && savedUser.id) {
+          console.log('[Auth] Restoring session for verified account:', savedUser.email, savedUser.role);
+          activeUser = savedUser;
+          if (savedUser.role === 'driver') {
+            openDriverDashboard();
+          } else {
+            openPassengerDashboard();
+          }
+          return;
+        }
+      } catch (e) {
+        console.warn('Session parse note:', e);
+      }
+    }
+
+    // Default to clean entry screen if no session exists
     goToStep(0);
 
-    // 2. Set up real-time auth event listener
+    // 2. Set up real-time auth event listener with safe guards
     supabaseClient.auth.onAuthStateChange((event, session) => {
       console.log('Supabase Auth State Changed:', event, session?.user?.email);
       if (session?.user) {
-        handleAuthStateChange(session.user);
+        if (activeUser && activeUser.email === session.user.email) {
+          activeUser.supabase_id = session.user.id;
+          localStorage.setItem('bus_stop_active_user', JSON.stringify(activeUser));
+        } else if (!activeUser) {
+          handleAuthStateChange(session.user);
+        }
       } else if (event === 'SIGNED_OUT') {
-        handleAuthStateChange(null);
+        // Do not kick out local verified database users if background cloud GoTrue signs out
+        if (!activeUser && !localStorage.getItem('bus_stop_active_user')) {
+          handleAuthStateChange(null);
+        }
       }
     });
 
@@ -195,8 +222,12 @@ function handleAuthStateChange(user) {
     // SIGNED IN STATE
     // -------------------------------------------------------------
     const fullName = user.full_name || user.user_metadata?.full_name || user.user_metadata?.name || '';
-    const email = user.email || 'traveler@busstop.transit';
-    const displayName = fullName || email.split('@')[0] || 'Traveler';
+    const email = user.email || '';
+    const displayName = fullName || email.split('@')[0] || 'Passenger';
+
+    // Persist verified user in localStorage
+    localStorage.setItem('bus_stop_active_user', JSON.stringify(user));
+    localStorage.setItem('bus_stop_confirmed_role', user.role || 'passenger');
 
     // Hide Login / Sign Up Forms & Tabs
     if (authTabs) authTabs.classList.add('hidden');
@@ -213,7 +244,18 @@ function handleAuthStateChange(user) {
       fullRoleModal.style.display = 'none';
     }
 
-    // If user is a driver (or logging in as driver): Keep in database as driver, hide auth modal, show Driver Profile of sign-in ID
+    // Hide Landing / Auth Wrapper
+    const authWrapper = document.getElementById('authWrapper');
+    if (authWrapper) {
+      authWrapper.classList.add('hidden');
+      authWrapper.style.display = 'none';
+    }
+    const scenic = document.getElementById('scenicBackdrop');
+    if (scenic) scenic.style.display = 'none';
+    document.querySelector('.page-brand-header')?.classList.add('hidden');
+    document.querySelector('.sky-quote')?.classList.add('hidden');
+
+    // If user is a driver:
     if (user.role === 'driver') {
       onboardingState.role = 'driver';
       selectedRole = 'driver';
@@ -237,51 +279,30 @@ function handleAuthStateChange(user) {
         body: JSON.stringify({ id: user.id, role: 'driver', full_name: fullName, phone: user.phone })
       }).catch(() => {});
 
-      // Hide auth modal and show the new Driver Profile screen directly
-      const authWrapper = document.getElementById('authWrapper');
-      if (authWrapper) {
-        authWrapper.classList.add('hidden');
-        authWrapper.style.display = 'none';
-      }
       showNotice(`Signed in as Driver: ${displayName}! Opening Driver Operating Console 🚏`);
       openDriverDashboard();
       return;
     }
 
-    // Check if user has completed profile (passenger)
-    const isProfileComplete = Boolean(
-      user.dob && 
-      user.home_location && 
-      user.gender && 
-      user.gender !== 'Not Specified'
-    );
+    // Role is Passenger (all traveler logins go directly to Live Transit Dashboard)
+    selectedRole = 'passenger';
+    onboardingState.role = 'passenger';
+    onboardingState.credentials = {
+      id: user.id,
+      fullName: fullName,
+      email: email,
+      phone: user.phone || ''
+    };
+    onboardingState.profile.dob = user.dob || '10 Jul 2007';
+    onboardingState.profile.gender = user.gender || 'Male';
+    onboardingState.profile.homeLocation = user.home_location || 'Dehradun, Uttarakhand';
+    onboardingState.profile.avatarUrl = user.avatar_url || 'assets/onboarding/who_passenger_thumb.jpg';
 
-    if (!isProfileComplete) {
-      // Incomplete profile: Take user directly to Step 2 to make their profile!
-      onboardingState.role = user.role || 'passenger';
-      selectedRole = user.role || 'passenger';
-      onboardingState.credentials = {
-        id: user.id,
-        fullName: fullName,
-        email: email,
-        phone: user.phone || ''
-      };
-      onboardingState.profile.dob = user.dob || '10 Jul 2007';
-      onboardingState.profile.gender = user.gender || 'Male';
-      onboardingState.profile.homeLocation = user.home_location || 'Dehradun, Uttarakhand';
-      onboardingState.profile.avatarUrl = user.avatar_url || 'assets/onboarding/who_passenger_thumb.jpg';
-      onboardingState.isExistingUserUpdating = true;
-
-      showNotice(`Welcome, ${displayName}! Please complete your traveler profile 🚏`);
-      goToStep(2);
-    } else {
-      // Profile complete: Direct straight to role-appropriate dashboard!
-      selectedRole = user.role || 'passenger';
-      showNotice(`Welcome back, ${displayName}! 🚏`);
-      setTimeout(() => {
-        renderRoleDashboard(user);
-      }, 150);
-    }
+    showNotice(`Welcome back, ${displayName}! Directing to Live Passenger Transit 🚏`);
+    setTimeout(() => {
+      openPassengerDashboard();
+    }, 120);
+    return;
 
   } else {
     // -------------------------------------------------------------
@@ -1405,6 +1426,7 @@ async function onLoginSubmit(event) {
     `;
   }
 }
+
 
 // Real Sign Up through Database Table & Supabase
 async function onSignUpSubmit(event) {
@@ -3359,10 +3381,22 @@ function openPassengerDashboard() {
 
   // Hide Auth wrapper & role screen
   const authWrapper = document.getElementById('authWrapper');
-  if (authWrapper) authWrapper.classList.add('hidden');
+  if (authWrapper) {
+    authWrapper.classList.add('hidden');
+    authWrapper.style.display = 'none';
+  }
 
   const fullRoleModal = document.getElementById('fullRoleSelectionScreen');
-  if (fullRoleModal) fullRoleModal.classList.add('hidden');
+  if (fullRoleModal) {
+    fullRoleModal.classList.add('hidden');
+    fullRoleModal.style.display = 'none';
+  }
+
+  // Hide scenic backdrop & landing elements
+  const scenic = document.getElementById('scenicBackdrop');
+  if (scenic) scenic.style.display = 'none';
+  document.querySelector('.page-brand-header')?.classList.add('hidden');
+  document.querySelector('.sky-quote')?.classList.add('hidden');
 
   // Hide any driver onboarding screens or driver cockpit
   document.getElementById('driverDashboardScreen')?.classList.add('hidden');
@@ -3376,7 +3410,7 @@ function openPassengerDashboard() {
   const dashboard = document.getElementById('passengerLiveDashboard');
   if (dashboard) {
     dashboard.classList.remove('hidden');
-    dashboard.style.display = 'block';
+    dashboard.style.display = 'flex';
   }
 
   // Populate top user info
@@ -3386,10 +3420,12 @@ function openPassengerDashboard() {
   const topName = document.getElementById('passengerTopUserName');
   const topAvatar = document.getElementById('passengerTopAvatar');
   const dropName = document.getElementById('dropdownUserFullName');
+  const dropRole = document.getElementById('dropdownUserRole');
 
   if (topName) topName.textContent = displayName.split(' ')[0] || 'Vivek';
   if (topAvatar) topAvatar.src = avatarUrl;
   if (dropName) dropName.textContent = displayName;
+  if (dropRole) dropRole.textContent = 'Passenger • Active Pass';
 
   // Mount the map once the dashboard is visible (needs real dimensions)
   setTimeout(() => {
@@ -3398,8 +3434,6 @@ function openPassengerDashboard() {
     renderBusesFeed();
     startPassengerLiveTracking();
   }, 150);
-
-
 
   showNotice(`Welcome to Bus Stop Live Passenger Transit! 🚏`);
 }

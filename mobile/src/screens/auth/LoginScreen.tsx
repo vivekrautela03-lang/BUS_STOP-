@@ -31,9 +31,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   navigation,
 }) => {
   const { login, isLoading } = useAuth();
-  const [email, setEmail] = useState('shivanshmourya078@gmail.com');
-  const [password, setPassword] = useState('password123');
-  const [selectedRole, setSelectedRole] = useState<UserRole>('driver');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('passenger');
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
@@ -41,24 +41,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       setErrorMessage('Please enter your email address');
       return;
     }
+    if (!password) {
+      setErrorMessage('Please enter your password');
+      return;
+    }
     setErrorMessage('');
     try {
-      await login(email, password);
+      await login(email.trim(), password, selectedRole);
       if (onSuccess) onSuccess();
     } catch (err: any) {
       setErrorMessage(err.message || 'Login failed. Please check credentials.');
     }
   };
 
-  const setDemoRole = (role: UserRole) => {
+  const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
-    if (role === 'driver') {
-      setEmail('shivanshmourya078@gmail.com');
-    } else if (role === 'admin') {
-      setEmail('admin@busstop.transit');
-    } else {
-      setEmail('vivekrautela03@gmail.com');
-    }
   };
 
   return (
@@ -78,7 +75,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <View style={styles.roleTabsContainer}>
           <TouchableOpacity 
             style={[styles.roleTab, selectedRole === 'passenger' && styles.roleTabActive]}
-            onPress={() => setDemoRole('passenger')}
+            onPress={() => handleRoleSelect('passenger')}
           >
             <Text style={[styles.roleTabText, selectedRole === 'passenger' && styles.roleTabTextActive]}>
               👥 Passenger
@@ -87,7 +84,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
           <TouchableOpacity 
             style={[styles.roleTab, selectedRole === 'driver' && styles.roleTabActive]}
-            onPress={() => setDemoRole('driver')}
+            onPress={() => handleRoleSelect('driver')}
           >
             <Text style={[styles.roleTabText, selectedRole === 'driver' && styles.roleTabTextActive]}>
               👨‍✈️ Driver
@@ -96,7 +93,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
           <TouchableOpacity 
             style={[styles.roleTab, selectedRole === 'admin' && styles.roleTabActive]}
-            onPress={() => setDemoRole('admin')}
+            onPress={() => handleRoleSelect('admin')}
           >
             <Text style={[styles.roleTabText, selectedRole === 'admin' && styles.roleTabTextActive]}>
               ⚙️ Admin
@@ -115,7 +112,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <View style={styles.formCard}>
           <Input 
             label="Email Address" 
-            placeholder="e.g. traveler@busstop.transit" 
+            placeholder="e.g. name@example.com" 
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"

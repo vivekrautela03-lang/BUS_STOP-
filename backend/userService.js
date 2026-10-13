@@ -74,58 +74,96 @@ function sanitizeUser(user) {
 // ----------------------------------------------------------------------------
 function initDatabase() {
   const users = readUsersTable();
-  if (users.length === 0) {
-    console.log('[UserService] Initializing users database table with default profiles...');
-    
-    const seedUsers = [
-      {
-        id: '11111111-1111-4111-8111-111111111111',
-        email: 'traveler@mountainline.com',
-        password_raw: 'MountainPass2026!',
-        full_name: 'Elena Vance',
-        phone: '+1 (555) 234-5678',
-        role: 'passenger',
-        badge_level: 'Scenic Mountain Line • Citizen Traveler',
-        assigned_bus: null,
-        shift_status: 'Active Pass Holder',
-        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-      },
-      {
-        id: '22222222-2222-4222-8222-222222222222',
-        email: 'captain.john@mountainline.com',
-        password_raw: 'FleetCaptain2026!',
-        full_name: 'Captain Johnathan Miller',
-        phone: '+1 (555) 987-6543',
-        role: 'driver',
-        badge_level: 'Mountain Transit Authority • Fleet Captain',
-        assigned_bus: '#BS-402',
-        shift_status: 'On Route',
-        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-      }
-    ];
+  console.log('[UserService] Verifying users database table profiles...');
 
-    const seeded = seedUsers.map(u => {
+  const defaultProfiles = [
+    {
+      id: '2e7c3865-4fda-42ed-b46d-141356e88003',
+      email: 'vivekrautela03@gmail.com',
+      password_raw: 'password123',
+      full_name: 'Vivek Rautela',
+      phone: '+91 90688 50966',
+      role: 'passenger',
+      badge_level: 'Scenic Mountain Line • Citizen Traveler',
+      assigned_bus: null,
+      shift_status: 'Active Pass Holder',
+      avatar_url: 'assets/onboarding/who_passenger_thumb.jpg',
+      dob: '10 Jul 2007',
+      gender: 'Male',
+      home_location: 'Dehradun, Uttarakhand',
+      preferred_radius: '10 km'
+    },
+    {
+      id: '2900b113-150a-4ede-9fe6-c7b67dece3b8',
+      email: 'avantikam936@gmail.com',
+      password_raw: 'password123',
+      full_name: 'Avantika Mishra',
+      phone: '+91 90688 50966',
+      role: 'passenger',
+      badge_level: 'Scenic Mountain Line • Citizen Traveler',
+      assigned_bus: null,
+      shift_status: 'Active Pass Holder',
+      avatar_url: 'assets/onboarding/who_passenger_thumb.jpg',
+      dob: '10 May 2007',
+      gender: 'Female',
+      home_location: 'Dehradun, Uttarakhand',
+      preferred_radius: '10 km'
+    },
+    {
+      id: '733ca121-d639-47f4-8e59-17d107a4e46d',
+      email: 'shivanshmourya078@gmail.com',
+      password_raw: 'password123',
+      full_name: 'Shivansh Mourya',
+      phone: '8439238588',
+      role: 'driver',
+      badge_level: 'Mountain Transit Authority • Fleet Captain',
+      assigned_bus: '#BS-402',
+      shift_status: 'Standby',
+      avatar_url: 'assets/onboarding/who_driver_thumb.jpg',
+      dob: '',
+      gender: 'Male',
+      home_location: 'Dehradun, Uttarakhand',
+      preferred_radius: '10 km',
+      license_number: 'DL-042023001894',
+      license_expiry: '28 Oct 2030'
+    }
+  ];
+
+  let modified = false;
+  for (const def of defaultProfiles) {
+    const existing = users.find(u => u.email === def.email.toLowerCase().trim());
+    if (!existing) {
       const salt = crypto.randomBytes(16).toString('hex');
-      const password_hash = hashPassword(u.password_raw, salt);
-      return {
-        id: u.id,
-        email: u.email.toLowerCase().trim(),
+      const password_hash = hashPassword(def.password_raw, salt);
+      users.push({
+        id: def.id,
+        email: def.email.toLowerCase().trim(),
         password_hash,
         salt,
-        full_name: u.full_name,
-        phone: u.phone,
-        role: u.role,
-        badge_level: u.badge_level,
-        assigned_bus: u.assigned_bus,
-        shift_status: u.shift_status,
-        avatar_url: u.avatar_url,
+        full_name: def.full_name,
+        phone: def.phone,
+        role: def.role,
+        badge_level: def.badge_level,
+        assigned_bus: def.assigned_bus,
+        shift_status: def.shift_status,
+        avatar_url: def.avatar_url,
+        dob: def.dob || '',
+        gender: def.gender || 'Not Specified',
+        home_location: def.home_location || 'Dehradun, Uttarakhand',
+        preferred_radius: def.preferred_radius || '10 km',
+        license_number: def.license_number || '',
+        license_expiry: def.license_expiry || '',
+        document_status: 'Verified',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      };
-    });
+      });
+      modified = true;
+    }
+  }
 
-    writeUsersTable(seeded);
-    console.log(`[UserService] Successfully initialized ${seeded.length} verified users.`);
+  if (modified || users.length === 0) {
+    writeUsersTable(users);
+    console.log(`[UserService] Successfully verified/seeded users table (${users.length} active users).`);
   }
 }
 
@@ -189,8 +227,8 @@ async function registerUser({
     assigned_bus: chosenRole === 'driver' ? '#BS-402' : null,
     shift_status: chosenRole === 'driver' ? 'Standby' : 'Active Pass Holder',
     avatar_url: avatar_url || (chosenRole === 'driver' ? 'assets/onboarding/who_driver_thumb.jpg' : 'assets/onboarding/who_passenger_thumb.jpg'),
-    dob: dob || '',
-    gender: gender || 'Not Specified',
+    dob: dob || '10 Jul 2007',
+    gender: gender || 'Male',
     home_location: home_location || 'Dehradun, Uttarakhand',
     preferred_radius: preferred_radius || '10 km',
     license_number: license_number || '',
@@ -219,7 +257,7 @@ async function authenticateUser({ email, password }) {
 
   const cleanEmail = email.toLowerCase().trim();
   const users = readUsersTable();
-  const user = users.find(u => u.email === cleanEmail);
+  let user = users.find(u => u.email === cleanEmail);
 
   if (!user) {
     throw new Error('Account not found with this email. Click "Create Account" above to register!');

@@ -15,7 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   loading: boolean;
   hasSeenOnboarding: boolean;
-  login: (email: string, password?: string) => Promise<UserProfile>;
+  login: (email: string, password?: string, requestedRole?: UserRole) => Promise<UserProfile>;
   register: (email: string, password: string, fullName: string, role: UserRole) => Promise<UserProfile>;
   logout: () => Promise<void>;
   switchRole: (role: UserRole) => Promise<void>;
@@ -93,40 +93,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string = 'password123'): Promise<UserProfile> => {
+  const login = async (email: string, password: string = 'password123', requestedRole?: UserRole): Promise<UserProfile> => {
     setIsLoading(true);
     try {
-      let resolvedUser: UserProfile;
+      let resolvedUser: UserProfile | null = null;
 
-      // 1. Try Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      // 1. Try local transit backend server /api/auth/login
+      try {
+        const baseUrl = await storageService.getApiBaseUrl();
+        const res = await fetch(`${baseUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && result.user) {
+            resolvedUser = {
+              id: result.user.id,
+              email: result.user.email,
+              full_name: result.user.full_name,
+              role: (requestedRole || result.user.role || 'passenger') as UserRole,
+              phone: result.user.phone,
+              license_number: result.user.license_number,
+              license_expiry: result.user.license_expiry,
+              verified: true,
+            };
+          }
+        }
+      } catch (_) {}
 
-      if (!error && data.user) {
-        resolvedUser = {
-          id: data.user.id,
-          email: data.user.email || email,
-          full_name: data.user.user_metadata?.full_name || email.split('@')[0],
-          role: (data.user.user_metadata?.role as UserRole) || (email.includes('driver') ? 'driver' : 'passenger'),
-          phone: data.user.phone || '',
-          license_number: data.user.user_metadata?.license_number || 'DL-042023001894',
-        };
-      } else {
-        // Fallback for demo driver/passenger accounts
-        const isDriver = email.toLowerCase().includes('driver') || email.toLowerCase().includes('shivansh');
-        const isAdmin = email.toLowerCase().includes('admin');
-        const assignedRole: UserRole = isAdmin ? 'admin' : isDriver ? 'driver' : 'passenger';
+      // 2. Try Supabase Auth if not already resolved
+      if (!resolvedUser) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+
+        if (!error && data.user) {
+          resolvedUser = {
+            id: data.user.id,
+            email: data.user.email || email,
+            full_name: data.user.user_metadata?.full_name || email.split('@')[0],
+            role: requestedRole || (data.user.user_metadata?.role as UserRole) || (email.includes('driver') ? 'driver' : 'passenger'),
+            phone: data.user.phone || '',
+            license_number: data.user.user_metadata?.license_number || 'DL-042023001894',
+          };
+        }
+      }
+
+      // 3. Fallback for demo driver/passenger accounts
+      if (!resolvedUser) {
+        const isDriver = requestedRole === 'driver' || email.toLowerCase().includes('driver') || email.toLowerCase().includes('shivansh');
+        const isAdmin = requestedRole === 'admin' || email.toLowerCase().includes('admin');
+        const assignedRole: UserRole = requestedRole || (isAdmin ? 'admin' : isDriver ? 'driver' : 'passenger');
 
         resolvedUser = {
           id: 'usr_' + Date.now().toString(36),
           email: email.trim(),
-          full_name: isDriver ? 'Shivansh Mourya' : 'Vivek Rautela',
+          full_name: assignedRole === 'driver' ? 'Shivansh Mourya' : (email.split('@')[0] || 'Vivek Rautela'),
           role: assignedRole,
           phone: '+91 98765 43210',
-          license_number: isDriver ? 'DL-042023001894' : undefined,
-          license_expiry: isDriver ? '28 Oct 2030' : undefined,
+          license_number: assignedRole === 'driver' ? 'DL-042023001894' : undefined,
+          license_expiry: assignedRole === 'driver' ? '28 Oct 2030' : undefined,
           verified: true,
         };
       }
