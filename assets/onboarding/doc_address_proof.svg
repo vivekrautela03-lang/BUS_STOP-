@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260" width="100%" height="100%">
+  <defs>
+    <filter id="billShad" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect x="2" y="2" width="416" height="256" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#billShad)"/>
+
+  <!-- Top UPCL Header with Logo -->
+  <g transform="translate(18, 14)">
+    <!-- Round Energy Logo -->
+    <circle cx="16" cy="16" r="14" fill="#1e3a8a"/>
+    <path d="M16 6 L12 16 L17 16 L14 24 L22 14 L17 14 Z" fill="#fbbf24"/>
+
+    <text x="38" y="14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="800" fill="#1e3a8a">Uttarakhand Power Corporation Ltd.</text>
+    <text x="38" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="700" fill="#475569">Government of Uttarakhand Undertaking</text>
+
+    <!-- Document Category Badge -->
+    <rect x="270" y="4" width="112" height="24" rx="12" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="326" y="20" font-family="sans-serif" font-size="8.5" font-weight="800" fill="#1d4ed8" text-anchor="middle">Electricity Bill</text>
+  </g>
+
+  <line x1="18" y1="48" x2="402" y2="48" stroke="#e2e8f0" stroke-width="1.2"/>
+
+  <!-- Consumer Details Table Box -->
+  <g transform="translate(18, 56)">
+    <rect x="0" y="0" width="384" height="66" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+
+    <text x="14" y="18" font-size="8" font-weight="700" fill="#64748b">Consumer Unit:</text>
+    <text x="100" y="18" font-family="monospace" font-size="8.5" font-weight="800" fill="#0f172a">UK07-UPCL-882910</text>
+
+    <text x="210" y="18" font-size="8" font-weight="700" fill="#64748b">Bill Date:</text>
+    <text x="280" y="18" font-size="8.5" font-weight="700" fill="#0f172a">15-08-2025</text>
+
+    <line x1="0" y1="26" x2="384" y2="26" stroke="#e2e8f0"/>
+
+    <text x="14" y="42" font-size="8" font-weight="700" fill="#64748b">Consumer Name:</text>
+    <text x="100" y="42" font-family="sans-serif" font-size="8.5" font-weight="800" fill="#0f172a">VIVEK RAUTELA</text>
+
+    <text x="14" y="58" font-size="8" font-weight="700" fill="#64748b">Service Address:</text>
+    <text x="100" y="58" font-family="sans-serif" font-size="8.5" font-weight="700" fill="#1e293b">Prem Nagar, Dehradun, Uttarakhand - 248007</text>
+  </g>
+
+  <!-- Consumption & Tariff Details -->
+  <g transform="translate(18, 132)">
+    <rect x="0" y="0" width="220" height="64" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="10" y="16" font-size="7.5" fill="#64748b">Tariff Category: <tspan font-weight="700" fill="#0f172a">Domestic LT</tspan></text>
+    <text x="10" y="32" font-size="7.5" fill="#64748b">Sanctioned Load: <tspan font-weight="700" fill="#0f172a">2.00 KW</tspan></text>
+    <text x="10" y="48" font-size="7.5" fill="#64748b">Meter No: <tspan font-weight="700" fill="#0f172a">MTR-992014</tspan></text>
+  </g>
+
+  <!-- Stamp: Paid / Verified Official -->
+  <g transform="translate(260, 136)">
+    <rect x="0" y="0" width="120" height="54" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text x="60" y="24" font-family="sans-serif" font-size="11" font-weight="900" fill="#15803d" text-anchor="middle" letter-spacing="1">PAID &amp; VERIFIED</text>
+    <text x="60" y="38" font-family="sans-serif" font-size="7.5" font-weight="700" fill="#16a34a" text-anchor="middle">₹ 1,480.00 Online</text>
+    <text x="60" y="48" font-family="sans-serif" font-size="6.5" fill="#65a30d" text-anchor="middle">TXN: UPCL2025081577</text>
+  </g>
+
+  <!-- Footer Notice -->
+  <g transform="translate(18, 222)">
+    <text x="0" y="12" font-size="7" fill="#94a3b8">Valid government utility bill accepted as Proof of Address under IT Act 2000.</text>
+  </g>
+
+  <!-- Green Verified Badge -->
+  <g transform="translate(382, 222)">
+    <circle cx="14" cy="14" r="14" fill="#10b981"/>
+    <path d="M8 14 L12 18 L20 10" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

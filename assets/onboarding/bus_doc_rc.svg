@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260" width="100%" height="100%">
+  <defs>
+    <filter id="rcShad" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect x="2" y="2" width="416" height="256" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#rcShad)"/>
+
+  <!-- Top Blue Header -->
+  <rect x="2" y="2" width="416" height="32" rx="14" fill="#1e3a8a"/>
+  <rect x="2" y="20" width="416" height="14" fill="#1e3a8a"/>
+  <text x="210" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">CERTIFICATE OF REGISTRATION (FORM 23)</text>
+  <text x="210" y="30" font-family="sans-serif" font-size="7.5" font-weight="700" fill="#bfdbfe" text-anchor="middle">TRANSPORT DEPARTMENT GOVERNMENT OF UTTARAKHAND</text>
+
+  <!-- Reg No Display -->
+  <g transform="translate(18, 44)">
+    <rect x="0" y="0" width="220" height="32" rx="6" fill="#f8fafc" stroke="#2563eb" stroke-width="1.2"/>
+    <text x="12" y="21" font-family="monospace" font-size="14" font-weight="900" fill="#1e3a8a">REG: UK07 PA 1234</text>
+  </g>
+
+  <!-- Smart chip -->
+  <g transform="translate(260, 44)">
+    <rect x="0" y="0" width="34" height="26" rx="4" fill="#fbbf24" stroke="#d97706" stroke-width="0.8"/>
+    <line x1="0" y1="13" x2="34" y2="13" stroke="#b45309" stroke-width="0.8"/>
+  </g>
+
+  <!-- Vehicle Details Table -->
+  <g transform="translate(18, 86)">
+    <rect x="0" y="0" width="384" height="116" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+    
+    <text x="12" y="20" font-size="8" font-weight="700" fill="#64748b">Owner Name:</text>
+    <text x="90" y="20" font-size="8.5" font-weight="800" fill="#0f172a">VIVEK RAUTELA / UTC TRAVELS</text>
+
+    <text x="12" y="38" font-size="8" font-weight="700" fill="#64748b">Class of Vehicle:</text>
+    <text x="90" y="38" font-size="8.5" font-weight="800" fill="#0f172a">HEAVY PASSENGER MOTOR VEHICLE (BUS)</text>
+
+    <text x="12" y="56" font-size="8" font-weight="700" fill="#64748b">Maker / Model:</text>
+    <text x="90" y="56" font-size="8.5" font-weight="700" fill="#0f172a">TATA MOTORS / STARBUS ULTRA 45S</text>
+
+    <text x="12" y="74" font-size="8" font-weight="700" fill="#64748b">Fuel Type:</text>
+    <text x="90" y="74" font-size="8.5" font-weight="700" fill="#16a34a">DIESEL (BS-VI)</text>
+
+    <text x="230" y="74" font-size="8" font-weight="700" fill="#64748b">Seating Capacity:</text>
+    <text x="320" y="74" font-size="8.5" font-weight="800" fill="#0f172a">45 + 2</text>
+
+    <text x="12" y="92" font-size="8" font-weight="700" fill="#64748b">Chassis No:</text>
+    <text x="90" y="92" font-family="monospace" font-size="8" fill="#334155">MAT820491X980123</text>
+
+    <text x="12" y="108" font-size="8" font-weight="700" fill="#64748b">Registration Date:</text>
+    <text x="90" y="108" font-size="8" font-weight="700" fill="#0f172a">18-03-2024 (Valid upto 17-03-2039)</text>
+  </g>
+
+  <!-- Official Seal -->
+  <g transform="translate(40, 214)">
+    <circle cx="18" cy="18" r="16" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="3,1"/>
+    <text x="18" y="21" font-size="6" font-weight="800" fill="#1d4ed8" text-anchor="middle">RTO DEHRADUN</text>
+  </g>
+
+  <!-- Green Verified Badge -->
+  <g transform="translate(382, 222)">
+    <circle cx="14" cy="14" r="14" fill="#10b981"/>
+    <path d="M8 14 L12 18 L20 10" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -1,0 +1,72 @@
+{
+  "stops": [],
+  "routes": [],
+  "drivers": [],
+  "buses": [
+    {
+      "id": "bus_733ca121-d639-47f4-8e59-17d107a4e46d",
+      "bus_number": "UK-07-DR-4567",
+      "registration_number": "UK-07-DR-4567",
+      "name": "Shivansh Mourya's Express",
+      "route_name": "Dehradun (ISBT) ➔ Rishikesh Express",
+      "route_number": "108",
+      "driver_name": "Shivansh Mourya",
+      "driver_phone": "8439238588",
+      "capacity": 42,
+      "available_seats": 17,
+      "fare": 55,
+      "type": "direct",
+      "status": "IN_TRANSIT",
+      "current_stop": "Prem Nagar",
+      "next_stop": "Doiwala",
+      "origin": "Dehradun",
+      "destination": "Rishikesh",
+      "eta_minutes": 5,
+      "speed": 42,
+      "is_active": true,
+      "location": {
+        "latitude": 30.340305869593095,
+        "longitude": 77.95432497454023,
+        "heading": 45,
+        "speed": 42,
+        "accuracy": 64,
+        "is_online": true,
+        "updated_at": "2026-10-13T07:14:55.497Z"
+      },
+      "alert": "Minor congestion near Prem Nagar, moving steadily",
+      "incident_status": "Traffic Congestion"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "bk-1791877276050",
+      "booking_reference": "BST-320668",
+      "user_id": "2e7c3865-4fda-42ed-b46d-141356e88003",
+      "bus_id": "bus_733ca121-d639-47f4-8e59-17d107a4e46d",
+      "bus_number": "UK-07-DR-4567",
+      "route_id": "a1000000-0000-0000-0000-000000000001",
+      "route_name": "Mountain Express",
+      "seat_number": "07B",
+      "passenger_name": "vivek rautela",
+      "passenger_phone": "+91 9876543210",
+      "boarding_stop": "Prem Nagar",
+      "destination_stop": "Maruti Vihar Rd",
+      "fare_amount": 55,
+      "status": "CONFIRMED",
+      "created_at": "2026-10-13T07:41:16.050Z"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "inc_1791875255495",
+      "bus_id": "UK-07-DR-4567",
+      "driver_name": "Shivansh Mourya",
+      "incident_type": "Traffic Congestion",
+      "severity": "MODERATE",
+      "message": "Minor congestion near Prem Nagar, moving steadily",
+      "location": "Prem Nagar",
+      "created_at": "2026-10-13T07:07:35.495Z"
+    }
+  ],
+  "saved_places": []
+}

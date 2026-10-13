@@ -1,0 +1,848 @@
+/* ==========================================================================
+   BUS STOP — DRIVER SIDE OPERATING SUITE (V2 DESIGN SYSTEM)
+   Modern, mobile-first, transportation operations aesthetic.
+   Deep midnight & light blue palette, electric blue actions, crisp typography,
+   rounded operational cards, clear status badges, and large-viewport map.
+   ========================================================================== */
+
+:root {
+  --driver-bg-deep: #0b1329;
+  --driver-bg-surface: #0f172a;
+  --driver-card-bg: #151f38;
+  --driver-card-bg-subtle: #1e293b;
+  --driver-card-border: rgba(255, 255, 255, 0.08);
+  --driver-card-border-focus: #3b82f6;
+  
+  --driver-primary: #2563eb;
+  --driver-primary-hover: #1d4ed8;
+  --driver-primary-glow: rgba(37, 99, 235, 0.35);
+  --driver-accent: #38bdf8;
+  
+  --driver-text-primary: #ffffff;
+  --driver-text-secondary: #94a3b8;
+  --driver-text-muted: #64748b;
+  
+  --driver-success: #10b981;
+  --driver-success-bg: rgba(16, 185, 129, 0.12);
+  --driver-warning: #f59e0b;
+  --driver-warning-bg: rgba(245, 158, 11, 0.12);
+  --driver-danger: #ef4444;
+  --driver-danger-bg: rgba(239, 68, 68, 0.12);
+  --driver-info: #0ea5e9;
+  
+  --driver-font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --driver-nav-height: 64px;
+  --driver-header-height: 60px;
+}
+
+/* Master Container */
+#driverAppContainer {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  z-index: 1000000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background-color: var(--driver-bg-deep) !important;
+  color: var(--driver-text-primary) !important;
+  font-family: var(--driver-font) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+#driverAppContainer.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/* App Header */
+.driver-app-header {
+  height: var(--driver-header-height);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--driver-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  z-index: 1000;
+}
+
+.driver-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.driver-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px var(--driver-primary-glow);
+}
+
+.driver-brand-text {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.driver-brand-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--driver-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-top: -2px;
+}
+
+.driver-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.driver-duty-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--driver-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.driver-duty-toggle.online {
+  background: var(--driver-success-bg);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.duty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+}
+
+.driver-duty-toggle.online .duty-dot {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-online 2s infinite;
+}
+
+@keyframes pulse-online {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.driver-header-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.driver-header-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.notif-badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+/* App Main Viewport */
+.driver-viewport {
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Screen Views */
+.driver-screen-view {
+  display: none;
+  min-height: 100%;
+  padding: 16px;
+  padding-bottom: calc(var(--driver-nav-height) + 24px);
+  box-sizing: border-box;
+}
+
+.driver-screen-view.active {
+  display: block;
+}
+
+/* Floating Live Trip Banner (Persistent during active trips) */
+.active-trip-floating-bar {
+  position: fixed;
+  bottom: calc(var(--driver-nav-height) + 12px);
+  left: 12px;
+  right: 12px;
+  max-width: 540px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(37, 99, 235, 0.4);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 900;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.active-trip-floating-bar:hover {
+  transform: translateY(-2px);
+}
+
+.floating-trip-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.floating-pulse-badge {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+.floating-trip-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.floating-trip-subtitle {
+  font-size: 11px;
+  color: #bfdbfe;
+}
+
+.floating-trip-btn {
+  background: #ffffff;
+  color: #1e3a8a;
+  border: none;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Bottom Navigation Bar */
+.driver-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--driver-nav-height);
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--driver-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.driver-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--driver-text-muted);
+  cursor: pointer;
+  padding: 6px 0;
+  transition: all 0.2s ease;
+}
+
+.driver-nav-item.active {
+  color: var(--driver-accent);
+}
+
+.driver-nav-icon {
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+
+.driver-nav-item.active .driver-nav-icon {
+  transform: translateY(-2px);
+  color: var(--driver-accent);
+}
+
+.driver-nav-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Cards & Components */
+.driver-card {
+  background: var(--driver-card-bg);
+  border: 1px solid var(--driver-card-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.driver-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.driver-card-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--driver-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.driver-pill-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-green {
+  background: var(--driver-success-bg);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.badge-yellow {
+  background: var(--driver-warning-bg);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-blue {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.badge-red {
+  background: var(--driver-danger-bg);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Stat Grid */
+.driver-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (min-width: 640px) {
+  .driver-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.driver-stat-card {
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.driver-stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.driver-stat-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--driver-text-secondary);
+}
+
+/* Primary Action Buttons */
+.driver-btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px var(--driver-primary-glow);
+  transition: all 0.2s ease;
+}
+
+.driver-btn-primary:hover {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  transform: translateY(-1px);
+}
+
+.driver-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.driver-btn-secondary {
+  width: 100%;
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  color: #ffffff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.driver-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.driver-btn-danger {
+  width: 100%;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border: none;
+  color: #ffffff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Live Trip Map Viewport */
+.driver-map-viewport {
+  width: 100%;
+  height: 280px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--driver-card-border);
+  position: relative;
+  background: #090e1a;
+  margin-bottom: 14px;
+}
+
+@media (min-width: 768px) {
+  .driver-map-viewport {
+    height: 380px;
+  }
+}
+
+.driver-map-overlay-card {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--driver-card-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+/* Passenger Manifest List */
+.manifest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.manifest-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.manifest-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.manifest-seat-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.manifest-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.manifest-route {
+  font-size: 11px;
+  color: var(--driver-text-secondary);
+}
+
+.btn-board-passenger {
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-board-passenger.boarded {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  cursor: default;
+}
+
+/* Seat Configuration Grid */
+.driver-seat-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--driver-card-bg-subtle);
+  border-radius: 14px;
+  border: 1px solid var(--driver-card-border);
+  max-width: 360px;
+  margin: 0 auto 16px;
+}
+
+.driver-seat-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr) 24px repeat(2, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.driver-aisle {
+  text-align: center;
+  font-size: 10px;
+  color: var(--driver-text-muted);
+}
+
+.driver-seat-cell {
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--driver-text-secondary);
+}
+
+.driver-seat-cell.available {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.driver-seat-cell.booked {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+
+.driver-seat-cell.boarded {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.6);
+  color: #60a5fa;
+}
+
+/* Stop Management Timeline */
+.stops-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  padding-left: 20px;
+  margin: 12px 0;
+}
+
+.stops-timeline::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 6px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.timeline-stop-item {
+  position: relative;
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timeline-stop-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #64748b;
+  border: 2px solid var(--driver-bg-deep);
+}
+
+.timeline-stop-item.passed::before {
+  background: #10b981;
+}
+
+.timeline-stop-item.current::before {
+  background: #3b82f6;
+  box-shadow: 0 0 10px #3b82f6;
+}
+
+/* Modals & Fullscreen Sheets */
+.driver-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.driver-modal-backdrop.hidden {
+  display: none !important;
+}
+
+.driver-modal-sheet {
+  background: var(--driver-card-bg);
+  border: 1px solid var(--driver-card-border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.driver-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--driver-card-border);
+  padding-bottom: 12px;
+}
+
+.driver-modal-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.driver-close-btn {
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  color: var(--driver-text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* QR Camera Scanner Viewport */
+.qr-scanner-frame {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(59, 130, 246, 0.6);
+}
+
+.qr-scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qr-target-guide {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 2px solid #38bdf8;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* Input Fields */
+.driver-input-group {
+  margin-bottom: 14px;
+}
+
+.driver-input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--driver-text-secondary);
+  margin-bottom: 6px;
+}
+
+.driver-input-field {
+  width: 100%;
+  background: var(--driver-card-bg-subtle);
+  border: 1px solid var(--driver-card-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.driver-input-field:focus {
+  outline: none;
+  border-color: var(--driver-card-border-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* Empty State */
+.driver-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.empty-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.empty-desc {
+  font-size: 12px;
+  color: var(--driver-text-secondary);
+  max-width: 280px;
+  margin: 0 auto;
+}

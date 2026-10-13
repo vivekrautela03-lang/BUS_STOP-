@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260" width="100%" height="100%">
+  <defs>
+    <filter id="pCertShad" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect x="2" y="2" width="416" height="256" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#pCertShad)"/>
+
+  <!-- Top Police Dept Header -->
+  <g transform="translate(18, 14)">
+    <!-- Police Badge Emblem -->
+    <path d="M16 4 L26 8 L24 22 L16 28 L8 22 L6 8 Z" fill="#0f172a" stroke="#ca8a04" stroke-width="1"/>
+    <circle cx="16" cy="15" r="5" fill="#ca8a04"/>
+
+    <text x="38" y="14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="900" fill="#0f172a">UTTARAKHAND POLICE HEADQUARTERS</text>
+    <text x="38" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="8" font-weight="700" fill="#475569">Character &amp; Antecedents Verification Certificate</text>
+
+    <!-- Badge -->
+    <rect x="280" y="4" width="102" height="22" rx="11" fill="#ecfdf5" stroke="#a7f3d0"/>
+    <text x="331" y="19" font-family="sans-serif" font-size="8" font-weight="800" fill="#059669" text-anchor="middle">CLEARED</text>
+  </g>
+
+  <line x1="18" y1="46" x2="402" y2="46" stroke="#e2e8f0" stroke-width="1.2"/>
+
+  <!-- Body Text -->
+  <g transform="translate(18, 56)">
+    <text x="0" y="14" font-size="8" fill="#64748b">Certificate Ref: <tspan font-family="monospace" font-weight="800" fill="#0f172a">UK-PCC-2025-08192</tspan></text>
+    <text x="210" y="14" font-size="8" fill="#64748b">Issue Date: <tspan font-weight="700" fill="#0f172a">20-08-2025</tspan></text>
+
+    <rect x="0" y="24" width="384" height="68" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="14" y="44" font-size="8.5" fill="#334155">This is to certify that as per police records of Dehradun District,</text>
+    <text x="14" y="58" font-size="8.5" font-weight="700" fill="#0f172a">Applicant: VIVEK RAUTELA, S/O: SURESH RAUTELA</text>
+    <text x="14" y="72" font-size="8" fill="#334155">Residing at Prem Nagar, Dehradun has NO adverse criminal history.</text>
+    <text x="14" y="84" font-size="8" font-weight="700" fill="#15803d">Status: Verified &amp; Fit for Public Passenger Transport Duty.</text>
+  </g>
+
+  <!-- Official Round Seal & Signature -->
+  <g transform="translate(40, 166)">
+    <circle cx="28" cy="28" r="26" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3,1"/>
+    <circle cx="28" cy="28" r="22" fill="none" stroke="#2563eb" stroke-width="0.8"/>
+    <text x="28" y="26" font-size="6" font-weight="800" fill="#1d4ed8" text-anchor="middle">SSP DEHRADUN</text>
+    <text x="28" y="34" font-size="5" fill="#2563eb" text-anchor="middle">OFFICIAL SEAL</text>
+  </g>
+
+  <g transform="translate(250, 174)">
+    <path d="M12 24 Q 28 8 46 22 T 74 16" stroke="#0f172a" stroke-width="1.6" fill="none"/>
+    <text x="44" y="38" font-size="7.5" font-weight="700" fill="#334155" text-anchor="middle">Superintendent of Police</text>
+    <text x="44" y="48" font-size="7" fill="#64748b" text-anchor="middle">Dehradun, Uttarakhand</text>
+  </g>
+
+  <!-- Green Verified Badge -->
+  <g transform="translate(382, 222)">
+    <circle cx="14" cy="14" r="14" fill="#10b981"/>
+    <path d="M8 14 L12 18 L20 10" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

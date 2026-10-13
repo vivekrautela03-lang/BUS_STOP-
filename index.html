@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>BUS STOP — Every journey starts somewhere</title>
+  <meta name="description" content="Bus Stop - Scenic mountain journeys, connecting routes, and real community stories.">
+  
+  <!-- PWA & Mobile Standalone Installation (Android & iOS) -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2589E8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BUS STOP">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/assets/icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
+  
+  <!-- Curated Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Official Supabase JS SDK v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- MapLibre GL JS (open-source vector map engine) -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" crossorigin=""/>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" crossorigin=""></script>
+
+  <!-- Leaflet Map Library (lightweight, mobile-friendly interactive maps) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+
+  <!-- QRCode Library for Verifiable Digital Tickets -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Environment variables injection -->
+  <script src="/env.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="map/map.css">
+  <link rel="stylesheet" href="driver_dashboard.css">
+  <link rel="stylesheet" href="driver_app.css">
+</head>
+<body class="splash-active">
+
+  <!-- =========================================================================
+       1. SPLASH SCREEN (single top layer, fades out, then removed from layout)
+       ========================================================================= -->
+  <div class="splash-screen" id="splashScreen" role="img" aria-label="Bus Stop — Every journey starts somewhere">
+    <img src="assets/splash_bg.jpg" alt="Bus Stop — Every journey starts somewhere" class="splash-img">
+  </div>
+
+  <script>
+    // Fail-safe: even if app.js fails to load, the splash never gets stuck.
+    setTimeout(function () {
+      if (document.body.classList.contains('splash-active')) {
+        document.body.classList.remove('splash-active');
+        var s = document.getElementById('splashScreen');
+        if (s) { s.classList.add('splash-hidden'); }
+      }
+    }, 4000);
+  </script>
+
+  <!-- =========================================================================
+       2. MAIN APPLICATION — AUTH SCREEN (LOGIN & SIGN UP)
+       ========================================================================= -->
+  <main class="main-layout" id="mainLayout">
+    
+    <!-- Left Scenic Background (Shelter, Boy, Bench, Cat, Signpost, Mountain Bus) -->
+    <div class="scenic-backdrop" id="scenicBackdrop"></div>
+
+    <!-- Top Left Brand Header -->
+    <header class="page-brand-header">
+      <div class="bus-stop-logo page-logo">
+        <span class="logo-bus">BUS</span>
+        <span class="logo-stop">
+          ST<span class="logo-o">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+            </svg>
+          </span>P
+        </span>
+      </div>
+      <p class="page-tagline">Every journey starts somewhere.</p>
+    </header>
+
+    <!-- Sky Cursive Quote (Positioned gracefully in the open sky) -->
+    <div class="sky-quote" aria-hidden="true">
+      <span class="sky-line-1">Same Routes</span>
+      <span class="sky-line-2">New Stories</span>
+      <span class="sky-line-3">Always...~</span>
+    </div>
+
+    <!-- Right Side Authentication Card -->
+    <section class="auth-wrapper" id="authWrapper">
+      <div class="auth-card" id="authCard">
+        
+        <!-- Step Header (Shown during Steps 1, 2, and 3) -->
+        <div class="onboarding-step-header hidden" id="onboardingStepHeader">
+          <button type="button" class="btn-step-back" id="btnStepBack" onclick="onboardingBack()" aria-label="Go back">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          
+          <div class="stepper-dots" id="stepperDots" aria-label="Onboarding Progress">
+            <span class="step-dot active" id="dot1"></span>
+            <span class="step-dot-line"></span>
+            <span class="step-dot" id="dot2"></span>
+            <span class="step-dot-line"></span>
+            <span class="step-dot" id="dot3"></span>
+          </div>
+
+          <button type="button" class="btn-step-login-switch" onclick="switchMode('login')">
+            Login
+          </button>
+        </div>
+
+        <!-- Standard Brand Header & Tabs (Shown on Initial Screen & Login) -->
+        <div class="card-brand-header" id="cardBrandHeader">
+          <!-- Corner Doodle: Bus Ticket (Top Left) -->
+          <div class="doodle-corner doodle-left" aria-hidden="true">
+            <div class="doodle-ticket">
+              <span class="ticket-text">BUS</span>
+              <span class="ticket-dashes"></span>
+            </div>
+          </div>
+
+          <!-- Corner Doodle: Bus Line-art (Top Right) -->
+          <div class="doodle-corner doodle-right" aria-hidden="true">
+            <svg viewBox="0 0 54 40" width="50" height="36" fill="none" stroke="#2c251d" stroke-width="1.6" stroke-linecap="round">
+              <rect x="8" y="8" width="36" height="22" rx="4" fill="#faf6f0"/>
+              <path d="M8 15h36M8 22h36"/>
+              <line x1="18" y1="8" x2="18" y2="22"/>
+              <line x1="30" y1="8" x2="30" y2="22"/>
+              <circle cx="16" cy="30" r="3.5" fill="#faf6f0"/>
+              <circle cx="36" cy="30" r="3.5" fill="#faf6f0"/>
+              <path d="M46 12c3-1 5 0 5 3s-1 3-4 3M47 23c3-1 5 0 5 3s-1 3-4 3" stroke-dasharray="2 2"/>
+            </svg>
+          </div>
+
+          <div class="bus-stop-logo card-logo">
+            <span class="logo-bus">BUS</span>
+            <span class="logo-stop">
+              ST<span class="logo-o">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+                </svg>
+              </span>P
+            </span>
+          </div>
+          <p class="card-tagline">Every journey starts somewhere.</p>
+        </div>
+
+        <!-- Pill Tabs: [ Sign Up ] [ Login ] -->
+        <div class="auth-tabs" id="authTabs" role="tablist" aria-label="Authentication Type">
+          <button type="button" class="tab-pill active" id="tabSignUp" role="tab" aria-selected="true" onclick="switchMode('who-are-you')">
+            Sign Up
+          </button>
+          <button type="button" class="tab-pill" id="tabLogin" role="tab" aria-selected="false" onclick="switchMode('login')">
+            Login
+          </button>
+        </div>
+
+        <!-- ===============================================================
+             SCREEN 0: "WHO ARE YOU?" (ENTRY SELECTION SCREEN)
+             =============================================================== -->
+        <div class="auth-form-panel form-visible" id="panelWhoAreYou">
+          <div class="who-title-block">
+            <h2 class="who-main-heading">Who are you?</h2>
+            <p class="who-sub-heading">Choose how you want to use Bus Stop</p>
+          </div>
+
+          <div class="who-cards-stack">
+            <!-- Option 1: Passenger -->
+            <div class="who-role-card role-card-passenger" onclick="startOnboardingFlow('passenger')" tabindex="0" role="button" aria-label="Choose Passenger Role">
+              <div class="who-card-avatar-box">
+                <img src="assets/onboarding/who_passenger_thumb.jpg" alt="Passenger Traveler" class="who-avatar-img">
+                <span class="who-bus-badge-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                    <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="who-card-details">
+                <div class="who-card-name-row">
+                  <h3 class="who-role-name">Passenger</h3>
+                  <span class="who-arrow-circle">➔</span>
+                </div>
+                <p class="who-role-desc">Find buses, book your ride, and travel easily.</p>
+              </div>
+            </div>
+
+            <!-- Option 2: Driver -->
+            <div class="who-role-card role-card-driver" onclick="startOnboardingFlow('driver')" tabindex="0" role="button" aria-label="Choose Bus Driver Role">
+              <div class="who-card-avatar-box">
+                <img src="assets/onboarding/who_driver_thumb.jpg" alt="Bus Driver Captain" class="who-avatar-img">
+                <span class="who-bus-badge-icon badge-driver-color" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                    <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="who-card-details">
+                <div class="who-card-name-row">
+                  <h3 class="who-role-name">Driver</h3>
+                  <span class="who-arrow-circle">➔</span>
+                </div>
+                <p class="who-role-desc">Run your bus, manage trips, and connect with passengers.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="who-bottom-login-row">
+            <span>Already have an account?</span>
+            <button type="button" class="btn-text-link" onclick="switchMode('login')">Login here</button>
+          </div>
+        </div>
+
+        <!-- ===============================================================
+             SCREEN 1: "CREATE YOUR ACCOUNT" (STEP 1 FOR BOTH ROLES)
+             =============================================================== -->
+        <form class="auth-form-panel form-hidden" id="panelStep1Account" onsubmit="handleStep1Submit(event)" novalidate>
+          
+          <div class="step-title-block">
+            <h2 class="step-main-title" id="step1TitleText">Create Your Account</h2>
+            <p class="step-sub-title" id="step1SubtitleText">Join Bus Stop and start your journey.</p>
+          </div>
+
+          <!-- Role Pill Badge with Change button -->
+          <div class="role-pill-badge" id="step1RolePill">
+            <div class="role-pill-left">
+              <span class="role-pill-icon">🚏</span>
+              <span class="role-pill-name" id="step1RoleBadgeName">Passenger</span>
+            </div>
+            <button type="button" class="btn-role-change" onclick="goToStep(0)">Change</button>
+          </div>
+
+          <!-- Full Name -->
+          <div class="field-box" id="obNameBox">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+            <input type="text" id="obFullName" placeholder="Enter your full name" required autocomplete="name">
+          </div>
+
+          <!-- Email Address -->
+          <div class="field-box" id="obEmailBox">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <rect x="3" y="5" width="18" height="14" rx="2"/>
+                <polyline points="3 7 12 13 21 7"/>
+              </svg>
+            </span>
+            <input type="email" id="obEmail" placeholder="you@example.com" required autocomplete="email">
+          </div>
+
+          <!-- Mobile Phone (+91) -->
+          <div class="field-box phone-field-box" id="obPhoneBox">
+            <div class="country-picker" id="obCountryPicker" onclick="toggleCountryDropdown()">
+              <span class="picker-flag">🇮🇳</span>
+              <span class="picker-code" id="pickerCodeText">+91</span>
+              <span class="picker-arrow">▾</span>
+            </div>
+            <input type="tel" id="obPhone" placeholder="Enter mobile number" required autocomplete="tel">
+          </div>
+
+          <!-- Create Password -->
+          <div class="field-box" id="obPassBox">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input type="password" id="obPassword" placeholder="Create a strong password" required autocomplete="new-password">
+            <button type="button" class="btn-toggle-eye" onclick="togglePassVisibility('obPassword', this)" aria-label="Toggle password visibility">
+              <svg class="icon-eye-open" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="icon-eye-closed hidden" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Terms Checkbox -->
+          <div class="terms-container">
+            <label class="terms-label">
+              <input type="checkbox" id="obTermsCheck" required checked>
+              <span class="terms-checkbox"></span>
+              <span class="terms-label-text">
+                I agree to the <a href="#terms" onclick="event.preventDefault(); showNotice('Terms of Service: Travel safely and respect the mountains.');">Terms of Service</a> and <a href="#privacy" onclick="event.preventDefault(); showNotice('Privacy Policy: We protect your data securely.');">Privacy Policy</a>.
+              </span>
+            </label>
+          </div>
+
+          <!-- Continue Button -->
+          <button type="submit" class="btn-submit-action btn-onboarding-continue" id="btnStep1Continue">
+            <span class="btn-text">Continue</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+          <!-- Divider & Social Buttons -->
+          <div class="auth-divider">
+            <span>OR SIGN UP WITH</span>
+          </div>
+
+          <div class="social-grid">
+            <button type="button" class="btn-social-auth" onclick="onSocialLogin('Google')">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.27-2.09 3.665-5.17 3.665-9.14z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.13C3.26 21.34 7.36 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.28c-.25-.72-.38-1.49-.38-2.28s.13-1.56.38-2.28V6.59H1.27C.46 8.21 0 10.05 0 12s.46 3.79 1.27 5.41l4.01-3.13z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.66 1.27 6.59l4.01 3.13c.95-2.83 3.6-4.97 6.72-4.97z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+            <button type="button" class="btn-social-auth" onclick="onSocialLogin('Apple')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 0.6-2.65 1.35-.58.66-1.08 1.73-.95 2.76.99.08 2.05-.51 2.68-1.26z"/>
+              </svg>
+              <span>Apple</span>
+            </button>
+            <button type="button" class="btn-social-auth" onclick="onSocialLogin('Phone')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <span>Phone</span>
+            </button>
+          </div>
+
+        </form>
+
+        <!-- ===============================================================
+             SCREEN 2A: "COMPLETE YOUR PROFILE" (STEP 2 FOR PASSENGER)
+             =============================================================== -->
+        <form class="auth-form-panel form-hidden" id="panelStep2Passenger" onsubmit="handleStep2PassengerSubmit(event)" novalidate>
+          
+          <div class="step-title-block">
+            <h2 class="step-main-title">Complete Your Profile</h2>
+            <p class="step-sub-title">A few details to personalize your experience.</p>
+          </div>
+
+          <!-- Photo Upload Avatar Circle -->
+          <div class="profile-photo-uploader">
+            <div class="photo-circle-box" onclick="triggerPhotoUpload('passengerPhotoInput')">
+              <img id="passengerAvatarPreview" src="assets/onboarding/who_passenger_thumb.jpg" alt="Profile Photo" class="photo-circle-img">
+              <div class="photo-add-badge">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                <span>Add Photo</span>
+              </div>
+            </div>
+            <input type="file" id="passengerPhotoInput" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, 'passengerAvatarPreview')">
+          </div>
+
+          <!-- Full Name -->
+          <div class="field-box" id="passProfileNameBox">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+            <input type="text" id="passProfileFullName" placeholder="Full Name" required>
+          </div>
+
+          <!-- DOB & Gender Row -->
+          <div class="field-row-grid">
+            <!-- Date of Birth -->
+            <div class="field-box compact-field">
+              <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.8" fill="none">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </span>
+              <input type="text" id="passDob" placeholder="10 Jul 2007" value="10 Jul 2007">
+            </div>
+
+            <!-- Gender -->
+            <div class="field-box compact-field">
+              <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.8" fill="none">
+                  <circle cx="12" cy="10" r="5"/>
+                  <path d="M12 15v7M9 19h6"/>
+                </svg>
+              </span>
+              <select id="passGender" class="select-field">
+                <option value="Male" selected>Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Home Location + Detect Location -->
+          <div class="field-box location-field-box">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </span>
+            <input type="text" id="passHomeLocation" value="Dehradun, Uttarakhand" placeholder="Home Location" required>
+            <button type="button" class="btn-detect-location" onclick="detectUserLocation('passHomeLocation')">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                <circle cx="12" cy="12" r="10"/>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+              </svg>
+              <span>Detect Location</span>
+            </button>
+          </div>
+
+          <!-- Preferred Travel Radius -->
+          <div class="travel-radius-block">
+            <div class="radius-header">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span>Preferred Travel Radius</span>
+            </div>
+            <div class="radius-pills-row" id="passRadiusRow">
+              <button type="button" class="radius-pill" onclick="selectRadiusPill(this, '5 km')">5 km</button>
+              <button type="button" class="radius-pill active" onclick="selectRadiusPill(this, '10 km')">10 km</button>
+              <button type="button" class="radius-pill" onclick="selectRadiusPill(this, '20 km')">20 km</button>
+              <button type="button" class="radius-pill" onclick="selectRadiusPill(this, '50 km')">50 km</button>
+            </div>
+          </div>
+
+          <!-- Continue / Save Profile Button -->
+          <button type="submit" class="btn-submit-action btn-onboarding-continue" id="btnStep2PassengerContinue">
+            <span class="btn-text">Save Profile & Enter Live Transit</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+        </form>
+
+
+        <!-- ===============================================================
+             SCREEN 3A: "YOU'RE ALL SET!" (STEP 3 FOR PASSENGER)
+             =============================================================== -->
+        <div class="auth-form-panel form-hidden" id="panelStep3PassengerReady">
+          
+          <div class="all-set-celebration">
+            <span class="confetti-sparkle sp1">✨</span>
+            <span class="confetti-sparkle sp2">🎉</span>
+            <span class="confetti-sparkle sp3">⭐</span>
+          </div>
+
+          <div class="step-title-block">
+            <h2 class="step-main-title celebration-title">You're All Set!</h2>
+            <p class="step-sub-title">Your Bus Stop account is ready.</p>
+          </div>
+
+          <!-- Celebration Avatar with Green Verified Badge -->
+          <div class="all-set-avatar-wrapper">
+            <div class="all-set-avatar-ring">
+              <img id="passengerFinalAvatar" src="assets/onboarding/who_passenger_thumb.jpg" alt="Your Traveler Avatar" class="all-set-avatar-img">
+              <span class="all-set-check-badge">✓</span>
+            </div>
+          </div>
+
+          <!-- 4-Point Checklist Card -->
+          <div class="all-set-checklist-box">
+            <div class="checklist-item">
+              <span class="check-bubble">✓</span>
+              <span class="checklist-label">Account Created</span>
+            </div>
+            <div class="checklist-item">
+              <span class="check-bubble">✓</span>
+              <span class="checklist-label">Profile Setup</span>
+            </div>
+            <div class="checklist-item">
+              <span class="check-bubble">✓</span>
+              <span class="checklist-label">Location Saved</span>
+            </div>
+            <div class="checklist-item">
+              <span class="check-bubble">✓</span>
+              <span class="checklist-label">You're Ready to Travel!</span>
+            </div>
+          </div>
+
+          <!-- Go to Home Button -->
+          <button type="button" class="btn-submit-action btn-onboarding-continue" id="btnGoToHome" onclick="finalizePassengerOnboarding()">
+            <span class="btn-text">Go to Home</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+        </div>
+
+        <!-- ===============================================================
+             SCREEN 3B: "VERIFY YOUR DOCUMENTS" (STEP 3 FOR DRIVER)
+             =============================================================== -->
+        <div class="auth-form-panel form-hidden" id="panelStep3DriverVerify">
+          
+          <div class="step-title-block">
+            <h2 class="step-main-title">Verify Your Documents</h2>
+            <p class="step-sub-title">Upload the required documents to get started.</p>
+          </div>
+
+          <!-- Document Upload Cards -->
+          <div class="doc-upload-stack">
+            <!-- 1. Driving License -->
+            <div class="doc-upload-card" onclick="simulateDocUpload('docLicenseStatus')">
+              <div class="doc-upload-icon-box">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+              </div>
+              <div class="doc-upload-info">
+                <h4 class="doc-upload-title">Upload Driving License</h4>
+                <p class="doc-upload-desc">Front and back photo (JPG, PNG, PDF)</p>
+                <span class="doc-status-badge status-ready" id="docLicenseStatus">✓ Document Attached</span>
+              </div>
+            </div>
+
+            <!-- Two Side-by-Side Cards -->
+            <div class="doc-upload-split-row">
+              <!-- Vehicle RC -->
+              <div class="doc-upload-card-half" onclick="simulateDocUpload('docRcStatus')">
+                <div class="doc-upload-icon-box sm">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <h4 class="doc-upload-title sm">Upload Vehicle RC</h4>
+                <p class="doc-upload-desc sm">(Registration Certificate)<br>(JPG, PNG, PDF)</p>
+                <span class="doc-status-badge status-ready" id="docRcStatus">✓ RC Ready</span>
+              </div>
+
+              <!-- Vehicle Photo -->
+              <div class="doc-upload-card-half" onclick="simulateDocUpload('docBusStatus')">
+                <div class="doc-upload-icon-box sm">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="6" width="18" height="13" rx="2"/>
+                    <circle cx="7" cy="19" r="2"/>
+                    <circle cx="17" cy="19" r="2"/>
+                  </svg>
+                </div>
+                <h4 class="doc-upload-title sm">Upload Vehicle Photo</h4>
+                <p class="doc-upload-desc sm">Front view of your bus<br>(JPG, PNG)</p>
+                <span class="doc-status-badge status-ready" id="docBusStatus">✓ Photo Attached</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit for Verification Button -->
+          <button type="button" class="btn-submit-action btn-onboarding-continue" id="btnSubmitVerification" onclick="finalizeDriverOnboarding()">
+            <span class="btn-text">Submit for Verification</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+        </div>
+
+        <!-- ===============================================================
+             LOGIN FORM (FOR RETURNING USERS)
+             =============================================================== -->
+        <form class="auth-form-panel form-hidden" id="loginForm" onsubmit="onLoginSubmit(event)" novalidate>
+          
+          <div class="signup-intro">
+            <h2 class="signup-title">Welcome Back</h2>
+            <p class="signup-desc">Enter your credentials to access your journey pass.</p>
+          </div>
+
+          <!-- Email Input -->
+          <div class="field-box" id="loginEmailBox">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <rect x="3" y="5" width="18" height="14" rx="2"/>
+                <polyline points="3 7 12 13 21 7"/>
+              </svg>
+            </span>
+            <input type="email" id="loginEmail" placeholder="Enter your email" required autocomplete="email">
+          </div>
+
+          <!-- Password Input -->
+          <div class="field-box" id="loginPassBox">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="btn-toggle-eye" onclick="togglePassVisibility('loginPassword', this)" aria-label="Toggle password visibility">
+              <svg class="icon-eye-open" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="icon-eye-closed hidden" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Forgot Password Link -->
+          <div class="forgot-wrapper">
+            <a href="#forgot" class="forgot-btn" onclick="onForgotPassword(event)">Forgot password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-submit-action" id="btnLoginSubmit">
+            <span class="btn-text">Login</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+          <!-- Divider -->
+          <div class="auth-divider">
+            <span>OR CONTINUE WITH</span>
+          </div>
+
+          <!-- Social Buttons -->
+          <div class="social-grid">
+            <button type="button" class="btn-social-auth" onclick="onSocialLogin('Google')">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.27-2.09 3.665-5.17 3.665-9.14z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.13C3.26 21.34 7.36 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.28c-.25-.72-.38-1.49-.38-2.28s.13-1.56.38-2.28V6.59H1.27C.46 8.21 0 10.05 0 12s.46 3.79 1.27 5.41l4.01-3.13z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.66 1.27 6.59l4.01 3.13c.95-2.83 3.6-4.97 6.72-4.97z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+            <button type="button" class="btn-social-auth" onclick="onSocialLogin('Apple')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 0.6-2.65 1.35-.58.66-1.08 1.73-.95 2.76.99.08 2.05-.51 2.68-1.26z"/>
+              </svg>
+              <span>Apple</span>
+            </button>
+            <button type="button" class="btn-social-auth" onclick="onSocialLogin('Phone')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <span>Phone</span>
+            </button>
+          </div>
+
+          <div class="who-bottom-login-row">
+            <span>New traveler?</span>
+            <button type="button" class="btn-text-link" onclick="switchMode('who-are-you')">Create account</button>
+          </div>
+
+        </form>
+
+        <!-- Intermediate signedInPanel removed as requested - users go directly to Home screen -->
+        <div class="auth-form-panel form-hidden" id="signedInPanel" style="display:none !important;" aria-hidden="true"></div>
+
+        <!-- ===============================================================
+             CARD FOOTER ARTWORK (ROLLING HILLS, HIGHWAY, SIGNPOST, QUOTE)
+             =============================================================== -->
+        <div class="card-art-footer">
+          <div class="footer-scenery">
+            
+            <!-- Dynamic Cursive Quote (Changes between Login and Sign Up) -->
+            <div class="footer-quote-box" id="footerQuoteBox">
+              <span class="quote-text-1">More than a ride,</span>
+              <span class="quote-text-2">A connected journey. <span class="heart-emoji">❤️</span></span>
+            </div>
+
+            <!-- Rustic Wooden Signpost with Mini Bus Badge -->
+            <div class="footer-sign-cluster">
+              <div class="wooden-post-sign">
+                <span class="sign-plank">EXPLORE</span>
+                <span class="sign-plank">TRAVEL</span>
+                <span class="sign-plank">CONNECT</span>
+                <span class="sign-plank">BELONG</span>
+              </div>
+              <div class="bus-badge-circle" title="Bus Stop Transit">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="#221e1a">
+                  <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+                </svg>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         3. FULL-SCREEN CHOOSE YOUR ROLE SCREEN (POST-AUTH / AFTER LOGIN OR SIGN UP)
+         Exact design matching user specification with Passenger & Driver cards
+         ========================================================================= -->
+    <section class="role-modal-screen hidden" id="fullRoleSelectionScreen" aria-labelledby="roleMainHeading">
+      <div class="role-modal-container">
+        
+        <!-- Header: Logo & Tagline -->
+        <div class="role-header-center">
+          <div class="bus-stop-logo role-logo">
+            <span class="logo-bus">BUS</span>
+            <span class="logo-stop">
+              ST<span class="logo-o">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+                </svg>
+              </span>P
+            </span>
+          </div>
+          <p class="role-tagline">Every journey starts somewhere.</p>
+        </div>
+
+        <!-- Title & Subtitle with comic accent dashes -->
+        <div class="role-title-block">
+          <div class="comic-title-wrapper">
+            <span class="comic-ticks left-ticks" aria-hidden="true">
+              <svg width="22" height="18" viewBox="0 0 22 18" fill="none" stroke="#221e1a" stroke-width="2.5" stroke-linecap="round">
+                <line x1="3" y1="4" x2="16" y2="9"/>
+                <line x1="2" y1="12" x2="18" y2="12"/>
+                <line x1="4" y1="17" x2="15" y2="14"/>
+              </svg>
+            </span>
+            <h1 class="role-screen-heading" id="roleMainHeading">Choose Your Role</h1>
+            <span class="comic-ticks right-ticks" aria-hidden="true">
+              <svg width="22" height="18" viewBox="0 0 22 18" fill="none" stroke="#221e1a" stroke-width="2.5" stroke-linecap="round">
+                <line x1="19" y1="4" x2="6" y2="9"/>
+                <line x1="20" y1="12" x2="4" y2="12"/>
+                <line x1="18" y1="17" x2="7" y2="14"/>
+              </svg>
+            </span>
+          </div>
+          <p class="role-screen-subtext">Tell us how you want to use Bus Stop .</p>
+        </div>
+
+        <!-- Two Role Cards (Passenger & Driver) -->
+        <div class="role-dual-grid">
+
+          <!-- Role Card 1: Passenger -->
+          <div class="role-big-card card-passenger" id="roleItemPassenger" onclick="selectAndConfirmRole('passenger')" tabindex="0" role="button" aria-label="Choose Passenger Role">
+            <div class="role-card-art-box">
+              <img src="assets/role_passenger_illustration.jpg" alt="Passenger waiting at scenic mountain bus stop" class="role-art-image">
+            </div>
+            
+            <div class="role-floating-badge badge-passenger-circle" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="#fca311">
+                <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+              </svg>
+            </div>
+
+            <div class="role-card-content-box">
+              <div class="role-card-name-row">
+                <span class="role-tick-accent">\</span>
+                <h2 class="role-card-title">Passenger</h2>
+                <span class="role-tick-accent">/</span>
+              </div>
+              <p class="role-card-tagline">Find buses, book your ride, and travel easily.</p>
+              
+              <button type="button" class="btn-role-pill btn-passenger-pill" onclick="event.stopPropagation(); selectAndConfirmRole('passenger');">
+                <span>Continue as Passenger</span>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Role Card 2: Driver -->
+          <div class="role-big-card card-driver" id="roleItemDriver" onclick="selectAndConfirmRole('driver')" tabindex="0" role="button" aria-label="Choose Bus Driver Role">
+            <div class="role-card-art-box">
+              <img src="assets/role_driver_illustration.jpg" alt="Bus driver captain navigating scenic road" class="role-art-image">
+            </div>
+
+            <div class="role-floating-badge badge-driver-circle" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#254d2b" stroke-width="2.3">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+                <line x1="12" y1="2" x2="12" y2="9"/>
+                <line x1="4.93" y1="19.07" x2="9.88" y2="14.12"/>
+                <line x1="19.07" y1="19.07" x2="14.12" y2="14.12"/>
+              </svg>
+            </div>
+
+            <div class="role-card-content-box">
+              <div class="role-card-name-row">
+                <span class="role-tick-accent">\</span>
+                <h2 class="role-card-title">Driver</h2>
+                <span class="role-tick-accent">/</span>
+              </div>
+              <p class="role-card-tagline">Run your bus, manage trips, and connect with passengers.</p>
+              
+              <button type="button" class="btn-role-pill btn-driver-pill" onclick="event.stopPropagation(); selectAndConfirmRole('driver');">
+                <span>Continue as Driver</span>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+<!-- Account info footer row -->
+        <div class="role-screen-footer-row">
+          <span class="role-active-user-badge" id="roleActiveUserGreeting">Signed in to Bus Stop</span>
+          <button type="button" class="btn-role-switch-account" onclick="handleSignOut()">Switch Account</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         4. PASSENGER REAL-TIME LIVE TRANSIT & MAP DASHBOARD
+         Exact UI layout and features matching user specification
+         ========================================================================= -->
+    <section class="passenger-dashboard-screen hidden" id="passengerLiveDashboard" aria-label="Passenger Live Transit Dashboard">
+      
+      <!-- Top Navbar / Journey Search Header Bar -->
+      <header class="passenger-top-navbar" id="passengerTopNavbar">
+        
+        <!-- Left: Search Route Inputs Container -->
+        <div class="journey-search-bar" id="journeySearchBar">
+          
+          <!-- From Location Input -->
+          <div class="search-input-group from-group" id="fromInputGroup">
+            <span class="search-pin-icon from-pin" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="#10b981">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+            </span>
+            <div class="search-field-inner">
+              <span class="search-field-label">From</span>
+              <input type="text" id="routeSearchFrom" class="search-input-field" value="Prem Nagar, Dehradun, Uttarakhand 248007" placeholder="Origin or choose GPS location" autocomplete="off" onfocus="openLocationSuggestions('from')" oninput="filterLocationSuggestions('from', this.value)">
+            </div>
+            <!-- Quick GPS Live Location Button -->
+            <button type="button" class="btn-input-gps" id="btnGpsFrom" onclick="useLiveLocationFor('from')" aria-label="Use my live location" title="Use My Live Location (GPS)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <circle cx="12" cy="12" r="8"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/>
+                <line x1="19" y1="12" x2="22" y2="12"/>
+              </svg>
+            </button>
+            <button type="button" class="btn-clear-search" onclick="clearSearchField('routeSearchFrom')" aria-label="Clear from input" title="Clear">✕</button>
+            <!-- Suggestions Dropdown -->
+            <div class="location-dropdown-panel hidden" id="dropdownFrom"></div>
+          </div>
+
+          <!-- Swap Button -->
+          <button type="button" class="btn-swap-locations" id="btnSwapLocations" onclick="swapSearchLocations()" title="Swap origin and destination" aria-label="Swap locations">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/>
+            </svg>
+          </button>
+
+          <!-- To Location Input -->
+          <div class="search-input-group to-group" id="toInputGroup">
+            <span class="search-pin-icon to-pin" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="#ef4444">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+            </span>
+            <div class="search-field-inner">
+              <span class="search-field-label">To</span>
+              <input type="text" id="routeSearchTo" class="search-input-field" value="Maruti Vihar Rd, Sarkanda, Bilaspur, Chhattisgarh 495006" placeholder="Destination or choose stop" autocomplete="off" onfocus="openLocationSuggestions('to')" oninput="filterLocationSuggestions('to', this.value)">
+            </div>
+            <!-- Quick GPS Live Location Button -->
+            <button type="button" class="btn-input-gps" id="btnGpsTo" onclick="useLiveLocationFor('to')" aria-label="Use my live location" title="Use My Live Location (GPS)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <circle cx="12" cy="12" r="8"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/>
+                <line x1="19" y1="12" x2="22" y2="12"/>
+              </svg>
+            </button>
+            <button type="button" class="btn-clear-search" onclick="clearSearchField('routeSearchTo')" aria-label="Clear to input" title="Clear">✕</button>
+            <!-- Suggestions Dropdown -->
+            <div class="location-dropdown-panel hidden" id="dropdownTo"></div>
+          </div>
+
+          <!-- Time Picker Dropdown -->
+          <div class="time-picker-dropdown-wrap">
+            <button type="button" class="btn-time-picker" id="btnTimePicker" onclick="toggleTimeDropdown()">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span id="selectedTimeLabel">Leave Now</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            <div class="time-dropdown-menu hidden" id="timeDropdownMenu">
+              <button type="button" class="time-opt-item active" onclick="selectTimeOption('Leave Now')">Leave Now</button>
+              <button type="button" class="time-opt-item" onclick="selectTimeOption('Today, 02:00 PM')">Today, 02:00 PM</button>
+              <button type="button" class="time-opt-item" onclick="selectTimeOption('Today, 05:00 PM')">Today, 05:00 PM</button>
+              <button type="button" class="time-opt-item" onclick="selectTimeOption('Tomorrow, 08:00 AM')">Tomorrow, 08:00 AM</button>
+              <button type="button" class="time-opt-item" onclick="selectTimeOption('Tomorrow, 02:00 PM')">Tomorrow, 02:00 PM</button>
+            </div>
+          </div>
+
+          <!-- Search Buses Action Button -->
+          <button type="button" class="btn-search-buses" id="btnSearchBuses" onclick="executeRouteSearch()">
+            <span>Search Buses</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+        </div>
+
+        <!-- Right: Notifications & User Profile Chip -->
+        <div class="passenger-top-right">
+          
+          <!-- Active Digital Ticket Button -->
+          <button type="button" class="btn-my-ticket-header hidden" id="btnMyActiveTicket" onclick="openPassengerTicketModal()" style="display:none;align-items:center;gap:6px;background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.3);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;" title="View My Digital Ticket & QR Code">
+            <span>🎫 My Ticket</span>
+            <span id="headerTicketPnr" style="font-size:11px;background:#10b981;color:#fff;padding:2px 6px;border-radius:10px;font-family:monospace;">PASS</span>
+          </button>
+
+
+          <!-- Notification Bell -->
+          <div class="notification-bell-wrap" id="notificationBellWrap">
+            <button type="button" class="btn-top-bell" onclick="toggleNotificationDrawer()" aria-label="Notifications" title="Travel alerts">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              <span class="bell-badge-dot" aria-label="New notification"></span>
+            </button>
+            
+            <div class="notification-drawer hidden" id="notificationDrawer">
+              <div class="notif-drawer-header">
+                <h4>Route Alerts</h4>
+                <button type="button" class="btn-notif-clear" onclick="toggleNotificationDrawer()">✕</button>
+              </div>
+              <div class="notif-item unread">
+                <span class="notif-icon">🚌</span>
+                <div class="notif-text">
+                  <strong>UTC Express #101</strong>
+                  <p>Arriving at Clock Tower in 4 mins. Boarding Platform 2.</p>
+                </div>
+              </div>
+              <div class="notif-item">
+                <span class="notif-icon">🌤️</span>
+                <div class="notif-text">
+                  <strong>Scenic Highway Status</strong>
+                  <p>Dehradun to Mussoorie mountain corridor is clear and smooth.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile Dropdown Pill -->
+          <div class="passenger-user-chip-wrap" id="passengerUserChipWrap">
+            <button type="button" class="btn-passenger-user-chip" onclick="toggleUserDropdownMenu()">
+              <img id="passengerTopAvatar" src="assets/user_vivek.jpg" alt="User Avatar" class="top-user-avatar">
+              <span id="passengerTopUserName" class="top-user-name">Vivek</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            <div class="user-dropdown-menu hidden" id="userDropdownMenu">
+              <div class="user-dropdown-info">
+                <strong id="dropdownUserFullName">Vivek</strong>
+                <span id="dropdownUserRole">Passenger • Active Pass</span>
+              </div>
+              <hr class="user-dropdown-divider">
+              <button type="button" class="dropdown-item" onclick="openProfileEditScreen()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Edit Profile</span>
+              </button>
+              <button type="button" class="dropdown-item" onclick="openDriverProfileScreen()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Driver Profile</span>
+              </button>
+              <button type="button" class="dropdown-item" onclick="openDriverDashboard()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <span>Driver Operating Console</span>
+              </button>
+              <button type="button" class="dropdown-item" onclick="showRoleSelectionScreen()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+                </svg>
+                <span>Switch / Change Role</span>
+              </button>
+              <button type="button" class="dropdown-item text-danger" onclick="handleSignOut()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </header>
+
+      <!-- Main Passenger Split View (Map on Left, Buses on Right) -->
+      <div class="passenger-main-split-view">
+        
+        <!-- Left: Interactive Real-Time Live Map -->
+        <div class="live-map-wrapper" id="liveMapWrapper">
+          
+          <!-- Floating Map Mode Controls (Top Left) -->
+          <div class="map-floating-controls-top-left" id="mapControlsTopLeft">
+            <div class="map-mode-pills-group">
+              <button type="button" class="map-mode-pill active" id="btnMapStreet" onclick="setMapLayerMode('street')">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                  <line x1="8" y1="2" x2="8" y2="18"/>
+                  <line x1="16" y1="6" x2="16" y2="22"/>
+                </svg>
+                <span>Map</span>
+              </button>
+              <button type="button" class="map-mode-pill" id="btnMapSatellite" onclick="setMapLayerMode('satellite')">
+                <span>Satellite</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Floating Map Zoom & Recenter Controls (Bottom Right) -->
+          <div class="map-floating-controls-bottom-right" id="mapControlsBottomRight">
+            <button type="button" class="map-icon-btn btn-recenter-route" id="btnMyLocation" onclick="recenterMapRoute()" title="My Location" aria-label="Go to my location">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/>
+                <line x1="19" y1="12" x2="22" y2="12"/>
+              </svg>
+            </button>
+            <div class="map-zoom-buttons-group">
+              <button type="button" class="map-icon-btn btn-zoom-in" onclick="mapZoomIn()" title="Zoom In" aria-label="Zoom in">+</button>
+              <button type="button" class="map-icon-btn btn-zoom-out" onclick="mapZoomOut()" title="Zoom Out" aria-label="Zoom out">−</button>
+            </div>
+          </div>
+
+          <!-- MapLibre Map Container Element -->
+          <div id="liveLeafletMap" class="live-leaflet-map-canvas" role="application" aria-label="Live map"></div>
+
+          <!-- Map loading state -->
+          <div class="map-loading-overlay hidden" id="mapLoadingOverlay" role="status" aria-live="polite">
+            <div class="map-loading-chip">
+              <span class="map-loading-spinner" aria-hidden="true"></span>
+              <span id="mapLoadingText">Loading map…</span>
+            </div>
+          </div>
+
+          <!-- Location permission / error banner (map stays usable underneath) -->
+          <div class="map-location-banner hidden" id="mapLocationBanner" role="alert">
+            <div class="map-banner-text">
+              <strong id="mapBannerTitle">Location access is off</strong>
+              <span id="mapBannerMessage"></span>
+            </div>
+            <button type="button" class="map-banner-action" id="mapBannerAction">Try again</button>
+          </div>
+
+          <!-- Live Real-Time Bus Tracking HUD (Floating on top of Map) -->
+          <div class="live-bus-tracking-hud hidden" id="liveBusTrackingHud" style="position:absolute;top:16px;right:16px;z-index:900;background:rgba(15,23,42,0.92);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:14px 18px;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,0.4);min-width:280px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.8px;color:#6ee7b7;text-transform:uppercase;">LIVE TRACKING</span>
+              </div>
+              <button type="button" onclick="closeTrackingHud()" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;line-height:1;" title="Close HUD">✕</button>
+            </div>
+            <h4 id="hudBusName" style="font-size:15px;font-weight:700;color:#fff;margin:0 0 8px 0;">UK-07-PA-8842 (Captain Vivek)</h4>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.08);padding:8px 12px;border-radius:10px;font-size:13px;">
+              <div>
+                <span style="display:block;font-size:10px;color:#94a3b8;text-transform:uppercase;">Next Stop</span>
+                <strong id="hudBusNextStop" style="color:#f8fafc;font-weight:600;">Prem Nagar (~4 min)</strong>
+              </div>
+              <div style="text-align:right;">
+                <span style="display:block;font-size:10px;color:#94a3b8;text-transform:uppercase;">Live Speed</span>
+                <strong id="hudBusSpeed" style="color:#38bdf8;font-weight:700;">48 km/h</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Buses on this Route Feed Panel -->
+        <aside class="buses-route-feed-panel" id="busesFeedPanel">
+          
+
+          <!-- Panel Header -->
+          <div class="feed-header-block">
+            <div class="feed-title-col">
+              <h2 class="feed-main-title">Buses on this Route</h2>
+              <p class="feed-sub-title" id="feedRouteSubtitle">From Prem Nagar to Maruti Vihar (Bilaspur)</p>
+              <div class="route-metrics-bar hidden" id="feedRouteMetricsBar">
+                <span class="route-metric-pill distance" id="metricDistance">🛣️ <strong id="metricDistanceVal">-- km</strong></span>
+                <span class="route-metric-pill duration" id="metricDuration">⏱️ <strong id="metricDurationVal">-- min</strong></span>
+                <span class="route-metric-pill transit-status" id="metricTransitStatus">🛣️ Road Navigation Route</span>
+              </div>
+            </div>
+            
+            <!-- Sort Dropdown -->
+            <div class="feed-sort-dropdown-wrap">
+              <label for="busSortSelect" class="feed-sort-label">Sort By</label>
+              <select id="busSortSelect" class="feed-sort-select" onchange="applyBusSort(this.value)">
+                <option value="departure" selected>Departure Time ▾</option>
+                <option value="price_low">Price: Low to High</option>
+                <option value="fastest">Fastest Duration</option>
+                <option value="rating">Top Rated</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Filter Pills (All / Direct / With Stops) -->
+          <div class="feed-filter-tabs-row" id="feedFilterTabsRow">
+            <button type="button" class="feed-filter-pill active" id="filterAll" onclick="setBusFilter('all')">
+              All (<span id="countAll">18</span>)
+            </button>
+            <button type="button" class="feed-filter-pill" id="filterDirect" onclick="setBusFilter('direct')">
+              Direct (<span id="countDirect">6</span>)
+            </button>
+            <button type="button" class="feed-filter-pill" id="filterStops" onclick="setBusFilter('stops')">
+              With Stops (<span id="countStops">12</span>)
+            </button>
+          </div>
+
+          <!-- Scrollable Bus Cards List -->
+          <div class="bus-cards-scroll-container" id="busCardsContainer">
+            <!-- Dynamically populated and server-grounded -->
+          </div>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+    <!-- =========================================================================
+         5. DRIVER OPERATING CONSOLE SCREEN
+         Dedicated cockpit for drivers: Assigned Bus, Route, GPS Broadcast, Stop Transitions
+         ========================================================================= -->
+
+    <!-- =========================================================================
+         MODERN DRIVER OPERATING SUITE (30 PRODUCTION SCREENS & COHESIVE SYSTEM)
+         ========================================================================= -->
+    <!-- =========================================================================
+         5. DRIVER OPERATING CONSOLE SCREEN (ORIGINAL COCKPIT + ALL NEW SCREENS)
+         Pixel-perfect original UI with light-blue/white styling + full 30 driver operations suite
+         ========================================================================= -->
+    <div id="driverDashboardScreen" class="driver-dashboard-screen hidden">
+      
+      <!-- TOP APPLICATION HEADER BAR -->
+      <header class="driver-top-header">
+        <div class="driver-header-left">
+          <div class="driver-brand-logo" onclick="window.location.reload()" title="Bus Stop Transit Operations">
+            <span class="logo-text-bus">BUS</span>
+            <span class="logo-text-stop">STOP</span>
+          </div>
+          <div class="driver-weather-pill" title="Current Mountain Route Climate">
+            <div class="weather-sun-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#f59e0b">
+                <circle cx="12" cy="12" r="5"/>
+                <g stroke="#f59e0b" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="23"/>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                  <line x1="1" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="12" x2="23" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </g>
+              </svg>
+            </div>
+            <div class="weather-meta">
+              <span class="weather-city-label">Dehradun</span>
+              <span class="weather-temp-cond">24°C <span class="weather-cond-tag">Sunny</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH BAR -->
+        <div class="driver-header-center">
+          <div class="driver-search-box">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#94a3b8" stroke-width="2.2" fill="none">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="driver-search-input" id="driverDashSearchInput" placeholder="Search passenger name, halt, ticket PNR, or seat..." oninput="filterPassengerManifest(this.value)">
+          </div>
+        </div>
+
+        <!-- RIGHT HEADER ACTIONS -->
+        <div class="driver-header-right">
+          
+          <!-- Duty Toggle -->
+          <button id="driverDutyToggle" class="driver-duty-toggle online" onclick="DriverApp.toggleDutyStatus()" title="Toggle Duty Status" style="display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;border:1.5px solid #e2e8f0;background:#ffffff;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s ease;">
+            <span class="duty-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,0.5);"></span>
+            <span class="duty-text" style="color:#0f172a;font-size:11.5px;">ON DUTY</span>
+          </button>
+
+          <!-- Cabin 40 Seats Shortcut -->
+          <button type="button" onclick="DriverApp.openSeatConfigModal()" title="Inspect 40 Cabin Seats" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid #e2e8f0;background:#ffffff;font-size:12px;font-weight:700;color:#2563eb;cursor:pointer;transition:all 0.15s ease;">
+            <span>💺</span>
+            <span>40 Seats</span>
+          </button>
+
+          <!-- QR Scan Shortcut -->
+          <button type="button" onclick="DriverApp.openQrScannerModal()" title="Open QR Ticket Scanner" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid #e2e8f0;background:#ffffff;font-size:12px;font-weight:700;color:#059669;cursor:pointer;transition:all 0.15s ease;">
+            <span>📷</span>
+            <span>QR Scan</span>
+          </button>
+
+          <!-- Live Clock -->
+          <div class="driver-clock-block">
+            <span class="driver-clock-date" id="driverDashClockDate">Wed, 7 Oct 2026</span>
+            <strong class="driver-clock-time" id="driverDashClockTime">08:24 AM</strong>
+          </div>
+
+          <!-- Notification Bell -->
+          <div class="driver-notif-btn-wrap">
+            <button type="button" class="btn-driver-bell" onclick="toggleDriverNotifDropdown()" aria-label="Notifications">
+              🔔<span class="notif-red-badge">2</span>
+            </button>
+            <div class="driver-notif-dropdown hidden" id="driverNotifDropdown">
+              <div class="notif-dropdown-header">
+                <strong>Dispatch Notifications</strong>
+                <span class="notif-pill-new">2 New</span>
+              </div>
+              <div class="notif-dropdown-list">
+                <div class="notif-item unread">
+                  <span class="notif-dot-blue">●</span>
+                  <div class="notif-item-body">
+                    <strong>Route 108 Clearance</strong>
+                    <p>Clear passage reported along Nepali Farm &amp; Raiwala bypass.</p>
+                    <span class="notif-time">5 mins ago</span>
+                  </div>
+                </div>
+                <div class="notif-item unread">
+                  <span class="notif-dot-blue">●</span>
+                  <div class="notif-item-body">
+                    <strong>Manifest Sync Active</strong>
+                    <p>3 new passengers booked seats 12A, 14B, 18C from Prem Nagar.</p>
+                    <span class="notif-time">12 mins ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Driver Profile Pill -->
+          <div class="driver-profile-pill-wrap">
+            <div class="driver-profile-pill" onclick="toggleDriverProfileDropdown()">
+              <div class="driver-avatar-ring">
+                <img src="assets/onboarding/who_driver_thumb.jpg" id="driverProfileAvatarImg" alt="Captain" class="driver-avatar-thumb">
+                <span class="driver-online-indicator"></span>
+              </div>
+              <div class="driver-user-text">
+                <strong class="driver-user-name" id="driverDashUserNameDisplay">Shivansh Mourya</strong>
+                <span class="driver-user-role-badge">Fleet Captain</span>
+              </div>
+            </div>
+            <div class="driver-profile-dropdown hidden" id="driverProfileDropdown">
+              <div class="profile-dropdown-header">
+                <strong id="driverTopName">Shivansh Mourya</strong>
+                <span style="font-size:11px;color:#64748b;">DL: DL-042023001894 • Active</span>
+              </div>
+              <div class="profile-dropdown-items">
+                <button type="button" class="profile-menu-item" onclick="openDriverProfileModal()">
+                  <span>👨‍✈️ Driver Credentials &amp; Bus</span>
+                </button>
+                <button type="button" class="profile-menu-item" onclick="openDriverSettingsModal()">
+                  <span>⚙️ Console Preferences</span>
+                </button>
+                <button type="button" class="profile-menu-item" onclick="handleDriverSwitchRouteModal()">
+                  <span>🔄 Switch Route Corridor</span>
+                </button>
+                <button type="button" class="profile-menu-item text-danger" onclick="logout()">
+                  <span>🚪 End Shift &amp; Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- SCROLLABLE MAIN DASHBOARD BODY -->
+      <main class="driver-dashboard-scrollable-body">
+        
+        <!-- BANNER ROW: GREETING & 4 STAT CARDS -->
+        <div class="driver-welcome-metrics-row">
+          <div class="driver-greeting-column">
+            <h1 class="driver-main-greeting" id="driverGreetingHeader">Good Morning, Shivansh 👋</h1>
+            <p class="driver-greeting-subtitle">Corridor: Dehradun ISBT ➔ Rishikesh Express • Fleet Bus UK-07-DR-4567 (Tata Starbus Ultra 40-Seater)</p>
+          </div>
+          <div class="driver-stats-four-cards">
+            <div class="driver-metric-card">
+              <div class="metric-icon-square icon-blue">🚍</div>
+              <div class="metric-content-col">
+                <span class="metric-label">Completed Trips</span>
+                <strong class="metric-value">142</strong>
+                <span class="metric-sublabel text-green">+12 this week</span>
+              </div>
+            </div>
+            <div class="driver-metric-card">
+              <div class="metric-icon-square icon-green">👥</div>
+              <div class="metric-content-col">
+                <span class="metric-label">Passengers Handled</span>
+                <strong class="metric-value" id="cardPassengersVal">18</strong>
+                <span class="metric-sublabel">Manifest Sync</span>
+              </div>
+            </div>
+            <div class="driver-metric-card">
+              <div class="metric-icon-square icon-green">₹</div>
+              <div class="metric-content-col">
+                <span class="metric-label">Today's Earnings</span>
+                <strong class="metric-value" id="cardEarningsVal">₹990</strong>
+                <span class="metric-badge-good">Settled</span>
+              </div>
+            </div>
+            <div class="driver-metric-card">
+              <div class="metric-icon-square icon-blue">⭐</div>
+              <div class="metric-content-col">
+                <span class="metric-label">Safety Rating</span>
+                <strong class="metric-value">5.0 ★</strong>
+                <span class="metric-sublabel">Top 5% Mountain Fleet</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN TWO-COLUMN DASHBOARD GRID -->
+        <div class="driver-dashboard-two-col-grid">
+          
+          <!-- LEFT COLUMN: LIVE MAP + SCHEDULE + RECENT ACTIVITY -->
+          <div class="driver-dash-col-left">
+            
+            <!-- LIVE TRACKING MAP CARD -->
+            <div class="driver-map-stage-card" id="driverMapStageCard">
+              <div id="driverCockpitMap" class="driver-cockpit-map-viewport"></div>
+
+              <!-- FLOATING LIVE PILL -->
+              <div class="map-floating-pill-live">
+                <span class="map-live-dot-pulse"></span>
+                <span>LIVE SATELLITE GPS</span>
+              </div>
+
+              <!-- FLOATING CONTROLS STACK -->
+              <div class="map-floating-controls-stack">
+                <button type="button" class="map-control-action-btn" onclick="toggleDriverMapFullscreen()" title="Toggle Fullscreen">⛶</button>
+                <button type="button" class="map-control-action-btn" onclick="driverCockpitZoomIn()" title="Zoom In">+</button>
+                <button type="button" class="map-control-action-btn" onclick="driverCockpitZoomOut()" title="Zoom Out">−</button>
+                <button type="button" class="map-control-action-btn" onclick="driverCockpitCenterBus()" title="Recenter Tata Starbus">🎯</button>
+                <button type="button" class="map-control-action-btn" onclick="toggleDriverMapTileLayer()" title="Switch Topo / Street Layer">🏔️</button>
+              </div>
+
+              <!-- FLOATING ROUTE SUMMARY GLASS CARD -->
+              <div class="map-floating-route-summary-glass">
+                <div class="route-summary-title-line">
+                  <strong class="route-glass-title" id="driverRouteGlassTitle">Dehradun (ISBT) ➔ Rishikesh Express</strong>
+                </div>
+                <div class="route-summary-meta-line">
+                  <span>Route 108</span>
+                  <span class="route-meta-pipe">|</span>
+                  <span>45 km</span>
+                  <span class="route-meta-pipe">|</span>
+                  <span>Tata Starbus Ultra (UK-07-DR-4567)</span>
+                </div>
+                <!-- Stepper Progress Bar -->
+                <div class="route-stepper-progress-box">
+                  <div class="route-stepper-bar-track">
+                    <div class="route-stepper-bar-fill" id="driverRouteTrackFill" style="width: 25%;"></div>
+                  </div>
+                  <div class="route-stepper-checkpoints">
+                    <div class="checkpoint-dot completed"></div>
+                    <div class="checkpoint-dot active"><span class="checkpoint-active-ring"></span></div>
+                    <div class="checkpoint-dot pending"></div>
+                    <div class="checkpoint-dot pending"></div>
+                    <div class="checkpoint-dot pending"></div>
+                  </div>
+                </div>
+                <div class="route-summary-bottom-stats">
+                  <span>Active Halt: Prem Nagar</span>
+                  <span class="dot-bullet">•</span>
+                  <span>In 5 mins (Speed: 48 km/h)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM TWO CARDS ROW: SCHEDULE & RECENT ACTIVITY -->
+            <div class="driver-bottom-two-cards-row">
+              
+              <!-- SCHEDULE TABLE CARD -->
+              <div class="driver-panel-card">
+                <div class="panel-card-header">
+                  <div class="panel-title-group">
+                    <div class="panel-icon-wrap icon-blue">🕒</div>
+                    <h3 class="panel-card-title">Route Schedule &amp; Halts</h3>
+                  </div>
+                  <button type="button" class="btn-panel-view-all" onclick="handleDriverSwitchRouteModal()">View Corridor ➔</button>
+                </div>
+                <div class="schedule-table-rows" id="driverScheduleRowsContainer">
+                  <!-- Rendered dynamically by renderDriverStopsProgressUI -->
+                </div>
+              </div>
+
+              <!-- RECENT ACTIVITY LOG CARD -->
+              <div class="driver-panel-card">
+                <div class="panel-card-header">
+                  <div class="panel-title-group">
+                    <div class="panel-icon-wrap icon-blue">📋</div>
+                    <h3 class="panel-card-title">Recent Activity Log</h3>
+                  </div>
+                  <span style="font-size:11px;color:#10b981;font-weight:700;">● Live Feed</span>
+                </div>
+                <div class="activity-timeline-rows" id="driverActivityRowsContainer">
+                  <div class="activity-item-line">
+                    <span class="activity-dot dot-green"></span>
+                    <div class="activity-details">
+                      <span class="activity-event-text">Driver console online &bull; GPS broadcasting active</span>
+                    </div>
+                    <span class="activity-time-stamp">Just now</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN: TARGET HALT + UPCOMING + ACTIONS + QUICK MATRIX -->
+          <div class="driver-dash-col-right">
+            
+            <!-- TARGET HALT / NEXT TRIP CARD -->
+            <div class="driver-side-next-trip-card">
+              <div class="next-trip-card-head">
+                <div class="next-trip-head-left">
+                  <div class="next-trip-icon-box">🎯</div>
+                  <div>
+                    <span class="next-trip-sub-heading">CURRENT TARGET HALT</span>
+                    <div class="next-trip-bold-title" id="driverNextTripTargetStop">Prem Nagar</div>
+                    <div class="next-trip-distance-eta" id="driverNextTripDistEta">2.4 km • Scheduled 08:30 AM</div>
+                  </div>
+                </div>
+                <span class="next-trip-eta-badge" id="driverNextTripEtaPill">Next Halt</span>
+              </div>
+            </div>
+
+            <!-- UPCOMING STOPS VERTICAL LIST CARD -->
+            <div class="driver-side-upcoming-card">
+              <div class="panel-card-header" style="margin-bottom:10px;">
+                <div class="panel-title-group">
+                  <div class="panel-icon-wrap icon-blue" style="width:28px;height:28px;font-size:13px;">🚏</div>
+                  <h4 style="font-size:14px;font-weight:800;color:#0f172a;margin:0;">Upcoming Corridor Halts</h4>
+                </div>
+                <span style="font-size:11px;color:#64748b;font-weight:600;">5 Total</span>
+              </div>
+              <div class="upcoming-stops-vertical-list" id="driverUpcomingStopsContainer">
+                <!-- Rendered dynamically by renderDriverStopsProgressUI -->
+              </div>
+            </div>
+
+            <!-- PRIMARY ACTION: CONTINUE TRIP BUTTON -->
+            <button type="button" class="btn-primary-continue-trip" id="btnContinueTripAction" onclick="handleContinueTripClick()">
+              <div class="continue-action-left">
+                <div class="continue-play-round-icon" id="continueTripIconWrap">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#2563eb">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                </div>
+                <div class="continue-action-text-col">
+                  <span class="continue-title-bold" id="continueTripTitleText">Continue Trip</span>
+                  <span class="continue-subtitle-light" id="continueTripSubText">Start navigation &amp; live GPS tracking</span>
+                </div>
+              </div>
+              <div class="continue-chevron-right">➔</div>
+            </button>
+
+            <!-- SECONDARY ACTIONS: END TRIP & SWITCH ROUTE -->
+            <div class="driver-secondary-action-grid">
+              <button type="button" class="btn-secondary-action-tile" onclick="handleDriverEndTripModal()">
+                <div class="sec-tile-icon-box bg-red-soft">🏁</div>
+                <div class="sec-tile-text-col">
+                  <span class="sec-tile-title">End Trip</span>
+                  <span class="sec-tile-sub">Complete journey</span>
+                </div>
+                <span class="sec-tile-chevron">➔</span>
+              </button>
+              <button type="button" class="btn-secondary-action-tile" onclick="handleDriverSwitchRouteModal()">
+                <div class="sec-tile-icon-box bg-blue-soft">🔄</div>
+                <div class="sec-tile-text-col">
+                  <span class="sec-tile-title">Switch Route</span>
+                  <span class="sec-tile-sub">Select corridor</span>
+                </div>
+                <span class="sec-tile-chevron">➔</span>
+              </button>
+            </div>
+
+            <!-- 2x3 QUICK FEATURE MATRIX TILES (OLD + ALL NEW SCREENS INTEGRATED) -->
+            <div class="driver-quick-features-matrix">
+              
+              <!-- 1. PASSENGER MANIFEST -->
+              <div class="quick-matrix-tile" onclick="openDriverPassengersModal()">
+                <div class="matrix-tile-icon-square icon-blue">👥</div>
+                <strong class="matrix-tile-title">Passenger Manifest</strong>
+                <span class="matrix-tile-sub">18 Bookings &bull; Verify</span>
+              </div>
+
+              <!-- 2. DRIVER EARNINGS -->
+              <div class="quick-matrix-tile" onclick="openDriverEarningsModal()">
+                <div class="matrix-tile-icon-square icon-green">💰</div>
+                <strong class="matrix-tile-title">Driver Earnings</strong>
+                <span class="matrix-tile-sub">₹990 fare settled</span>
+              </div>
+
+              <!-- 3. PRE-TRIP CHECKLIST (NEW SCREEN) -->
+              <div class="quick-matrix-tile" onclick="DriverApp.openPreTripChecklist()">
+                <div class="matrix-tile-icon-square icon-purple">⚡</div>
+                <strong class="matrix-tile-title">Pre-Trip Checklist</strong>
+                <span class="matrix-tile-sub">6-point safety check</span>
+              </div>
+
+              <!-- 4. CABIN 40 SEATS (NEW SCREEN) -->
+              <div class="quick-matrix-tile" onclick="DriverApp.openSeatConfigModal()">
+                <div class="matrix-tile-icon-square icon-orange">💺</div>
+                <strong class="matrix-tile-title">Cabin 40 Seats</strong>
+                <span class="matrix-tile-sub">Tata Starbus 2x2 grid</span>
+              </div>
+
+              <!-- 5. QR TICKET SCANNER (NEW SCREEN) -->
+              <div class="quick-matrix-tile" onclick="DriverApp.openQrScannerModal()">
+                <div class="matrix-tile-icon-square icon-slate">📷</div>
+                <strong class="matrix-tile-title">QR Ticket Scanner</strong>
+                <span class="matrix-tile-sub">Live camera &bull; PNR</span>
+              </div>
+
+              <!-- 6. REPORT INCIDENT -->
+              <div class="quick-matrix-tile" onclick="openDriverIncidentModal()">
+                <div class="matrix-tile-icon-square icon-yellow">⚠️</div>
+                <strong class="matrix-tile-title">Report Incident</strong>
+                <span class="matrix-tile-sub">Delay / roadblock alert</span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </main>
+
+      <!-- =======================================================================
+           MODALS SECTION (ORIGINAL COCKPIT + NEW OPERATIONAL SCREENS)
+           ======================================================================= -->
+
+      <!-- MODAL 1: PASSENGER MANIFEST & BOARDING VERIFICATION -->
+      <div class="modal-backdrop hidden" id="driverPassengersModal" onclick="closeDriverPassengersModal(event)">
+        <div class="driver-modal-card-box" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag">Passenger Operations</span>
+              <h3>Passenger Manifest &amp; Boarding Passes</h3>
+              <p>Authoritative passenger bookings list for Bus UK-07-DR-4567</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="closeDriverPassengersModal()">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            
+            <!-- Quick Boarding Verification & Scanner Bar -->
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="driverTicketVerifyInput" placeholder="Enter or scan ticket reference (PNR)..." style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:monospace;outline:none;">
+              <button type="button" onclick="verifyTicketFromInput()" style="padding:8px 16px;border-radius:8px;background:#2563eb;color:#fff;border:none;font-weight:700;font-size:12px;cursor:pointer;">
+                Verify &amp; Board ➔
+              </button>
+              <button type="button" onclick="DriverApp.openQrScannerModal()" style="padding:8px 14px;border-radius:8px;background:#059669;color:#fff;border:none;font-weight:700;font-size:12px;cursor:pointer;">
+                📷 Open QR Scanner
+              </button>
+            </div>
+
+            <div class="manifest-search-row">
+              <input type="text" class="manifest-search-input" placeholder="Filter manifest by passenger, seat, or stop..." oninput="filterPassengerManifest(this.value)">
+              <span class="manifest-count-pill" id="manifestModalCountBadge">18 Total Bookings</span>
+            </div>
+
+            <div class="manifest-table-wrap">
+              <table class="manifest-table">
+                <thead>
+                  <tr>
+                    <th>Seat</th>
+                    <th>Passenger / PNR</th>
+                    <th>Boarding</th>
+                    <th>Destination</th>
+                    <th>Status / Action</th>
+                  </tr>
+                </thead>
+                <tbody id="driverManifestTableBody">
+                  <!-- Loaded dynamically by loadDriverPassengerData() -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL 2: DRIVER EARNINGS & SETTLEMENT -->
+      <div class="modal-backdrop hidden" id="driverEarningsModal" onclick="closeDriverEarningsModal(event)">
+        <div class="driver-modal-card-box" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag">Financial Settlement</span>
+              <h3>Driver Earnings &amp; Shift Revenue</h3>
+              <p>Live calculated passenger fares for Dehradun ➔ Rishikesh Corridor</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="closeDriverEarningsModal()">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            <div class="earnings-summary-cards">
+              <div class="earn-sum-card bg-sum-blue">
+                <span class="earn-sum-label">TOTAL FARE COLLECTED</span>
+                <strong class="earn-sum-val">₹990</strong>
+                <span class="earn-sum-trend">↑ 18 Booked Seats</span>
+              </div>
+              <div class="earn-sum-card bg-sum-green">
+                <span class="earn-sum-label">DIGITAL UPI / CARDS (78%)</span>
+                <strong class="earn-sum-val">₹772</strong>
+                <span class="earn-sum-trend">Direct UTC Wallet</span>
+              </div>
+              <div class="earn-sum-card bg-sum-amber">
+                <span class="earn-sum-label">CASH IN CABIN (22%)</span>
+                <strong class="earn-sum-val">₹218</strong>
+                <span class="earn-sum-trend">Reconciled at Terminal</span>
+              </div>
+            </div>
+
+            <h4 class="earnings-section-title">Trip Breakdown Log</h4>
+            <div class="earnings-breakdown-list" id="driverEarningsBreakdownList">
+              <!-- Rendered dynamically by updateDriverEarningsUI() -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL 3: END TRIP CONFIRMATION -->
+      <div class="modal-backdrop hidden" id="driverEndTripModal" onclick="closeDriverEndTripModal(event)">
+        <div class="driver-modal-card-box" style="max-width:480px;text-align:center;" onclick="event.stopPropagation()">
+          <div class="driver-modal-head" style="justify-content:center;position:relative;">
+            <div class="modal-head-title-wrap">
+              <div style="font-size:36px;margin-bottom:8px;">🏁</div>
+              <h3>End Current Trip?</h3>
+              <p>Confirm run termination and final passenger settlement</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" style="position:absolute;top:16px;right:16px;" onclick="closeDriverEndTripModal()">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin-bottom:20px;">
+              Ending this trip will freeze passenger manifests, finalize GPS distance metrics (45 km logged), and notify Central Mountain Dispatch.
+            </p>
+            <div class="end-trip-modal-actions">
+              <button type="button" class="btn-modal-cancel" onclick="closeDriverEndTripModal()">Resume Trip</button>
+              <button type="button" class="btn-modal-confirm-end" onclick="confirmDriverEndTrip()">Confirm &amp; End Trip</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL 4: SWITCH TRANSIT CORRIDOR -->
+      <div class="modal-backdrop hidden" id="driverSwitchRouteModal" onclick="closeDriverSwitchRouteModal(event)">
+        <div class="driver-modal-card-box" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag">Fleet Routing</span>
+              <h3>Switch Transit Corridor</h3>
+              <p>Select assigned mountain transport route for your Tata Starbus</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="closeDriverSwitchRouteModal()">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            <div class="switch-routes-list" id="driverAvailableRoutesList">
+              <!-- Populated dynamically by handleDriverSwitchRouteModal() -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL 5: REPORT INCIDENT OR DELAY -->
+      <div class="modal-backdrop hidden" id="driverIncidentModal" onclick="closeDriverIncidentModal(event)">
+        <div class="driver-modal-card-box" style="max-width:520px;" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag" style="color:#d97706;background:#fef3c7;">Safety &amp; Delays</span>
+              <h3>Broadcast Incident Advisory</h3>
+              <p>Notify all passengers and Central Dispatch immediately</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="closeDriverIncidentModal()">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            <div style="margin-bottom:14px;">
+              <label style="display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;">Incident Category</label>
+              <select id="driverIncidentType" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;outline:none;">
+                <option value="Traffic Congestion">Traffic Congestion / Heavy Jam</option>
+                <option value="Landslide or Roadblock">Mountain Landslide / Road Construction</option>
+                <option value="Vehicle Mechanical Check">Vehicle Inspection / Tire Pressure Check</option>
+                <option value="Adverse Weather Fog">Heavy Mountain Rain / Fog (Reduced Speed)</option>
+                <option value="Medical Assistance">Passenger Medical Assistance</option>
+              </select>
+            </div>
+            <div style="margin-bottom:18px;">
+              <label style="display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;">Advisory Details for Passengers</label>
+              <textarea id="driverIncidentMessage" rows="3" placeholder="Brief note: e.g. '15-min delay near Raiwala junction due to heavy traffic clearance.'" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;outline:none;resize:none;box-sizing:border-box;"></textarea>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;">
+              <button type="button" class="btn-modal-cancel" onclick="closeDriverIncidentModal()">Cancel</button>
+              <button type="button" class="btn-save-driver-settings" style="background:#ea580c;" onclick="submitDriverIncident()">Broadcast Advisory 📡</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL 6: CONSOLE SETTINGS & PREFERENCES -->
+      <div class="modal-backdrop hidden" id="driverSettingsModal" onclick="closeDriverSettingsModal(event)">
+        <div class="driver-modal-card-box" style="max-width:540px;" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag">Console Preferences</span>
+              <h3>Driver Console Settings</h3>
+              <p>Audio announcements, map telemetry, and automated workflows</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="closeDriverSettingsModal()">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            <div class="settings-toggle-row">
+              <div>
+                <strong style="display:block;font-size:13.5px;color:#0f172a;">Voice Stop Announcements (TTS)</strong>
+                <span style="font-size:11.5px;color:#64748b;">Read upcoming stop names aloud upon arrival</span>
+              </div>
+              <input type="checkbox" id="prefAudioAnnouncements" checked style="width:18px;height:18px;cursor:pointer;">
+            </div>
+            <div class="settings-toggle-row">
+              <div>
+                <strong style="display:block;font-size:13.5px;color:#0f172a;">Auto-Open Manifest on Halt</strong>
+                <span style="font-size:11.5px;color:#64748b;">Display passenger list when bus arrives at designated halt</span>
+              </div>
+              <input type="checkbox" id="prefAutoAccept" checked style="width:18px;height:18px;cursor:pointer;">
+            </div>
+            <div class="settings-toggle-row">
+              <div>
+                <strong style="display:block;font-size:13.5px;color:#0f172a;">Mountain Topographic Map Relief</strong>
+                <span style="font-size:11.5px;color:#64748b;">Display elevation contours and hill shades on Leaflet map</span>
+              </div>
+              <input type="checkbox" id="prefTopoMap" checked style="width:18px;height:18px;cursor:pointer;">
+            </div>
+            <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;">
+              <button type="button" class="btn-modal-cancel" style="color:#ef4444;border:1px solid #fca5a5;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;background:#fff;" onclick="logout()">🚪 End Shift &amp; Logout</button>
+              <button type="button" class="btn-save-driver-settings" onclick="closeDriverSettingsModal()">Save Preferences</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =======================================================================
+           NEW SCREENS: CHECKLIST, QR SCANNER, CABIN 40 SEATS, PROFILE MODALS
+           ======================================================================= -->
+
+      <!-- NEW SCREEN 1: PRE-TRIP SAFETY CHECKLIST MODAL -->
+      <div class="modal-backdrop hidden" id="driverModal_preTrip" onclick="DriverApp.closeModal('driverModal_preTrip')">
+        <div class="driver-modal-card-box" style="max-width:580px;" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag" style="background:#fef3c7;color:#b45309;">Mandatory Pre-Trip Certification</span>
+              <h3>6-Point Pre-Trip Safety Checklist</h3>
+              <p>Vehicle: Tata Starbus Ultra UK-07-DR-4567 &bull; Uttarakhand Transport Authority</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="DriverApp.closeModal('driverModal_preTrip')">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            <div style="font-size:13px;color:#475569;margin-bottom:16px;">
+              Please physically inspect each item below prior to beginning passenger embarkation.
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+              <label style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;">
+                <input type="checkbox" class="pre-trip-chk" onchange="DriverApp.validatePreTripChecklist()" style="width:18px;height:18px;margin-top:2px;">
+                <div>
+                  <strong style="display:block;font-size:13px;color:#0f172a;">1. Brakes &amp; Retarders</strong>
+                  <span style="font-size:11.5px;color:#64748b;">Air brake pressure normal (&gt; 7 bar) and parking brake holds.</span>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;">
+                <input type="checkbox" class="pre-trip-chk" onchange="DriverApp.validatePreTripChecklist()" style="width:18px;height:18px;margin-top:2px;">
+                <div>
+                  <strong style="display:block;font-size:13px;color:#0f172a;">2. Tires &amp; Tread Depth</strong>
+                  <span style="font-size:11.5px;color:#64748b;">All 6 mountain road tires inspected; spare tire inflated and mounted.</span>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;">
+                <input type="checkbox" class="pre-trip-chk" onchange="DriverApp.validatePreTripChecklist()" style="width:18px;height:18px;margin-top:2px;">
+                <div>
+                  <strong style="display:block;font-size:13px;color:#0f172a;">3. Fuel &amp; Engine Fluids</strong>
+                  <span style="font-size:11.5px;color:#64748b;">Fuel tank &gt; 80%; coolant, DEF, and engine oil levels optimal.</span>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;">
+                <input type="checkbox" class="pre-trip-chk" onchange="DriverApp.validatePreTripChecklist()" style="width:18px;height:18px;margin-top:2px;">
+                <div>
+                  <strong style="display:block;font-size:13px;color:#0f172a;">4. Emergency Exits &amp; First Aid Kit</strong>
+                  <span style="font-size:11.5px;color:#64748b;">Roof hatch operable, safety hammers in place, first aid kit stocked.</span>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;">
+                <input type="checkbox" class="pre-trip-chk" onchange="DriverApp.validatePreTripChecklist()" style="width:18px;height:18px;margin-top:2px;">
+                <div>
+                  <strong style="display:block;font-size:13px;color:#0f172a;">5. Pneumatic Passenger Doors</strong>
+                  <span style="font-size:11.5px;color:#64748b;">Front and rear door interlocks open and close smoothly.</span>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;">
+                <input type="checkbox" class="pre-trip-chk" onchange="DriverApp.validatePreTripChecklist()" style="width:18px;height:18px;margin-top:2px;">
+                <div>
+                  <strong style="display:block;font-size:13px;color:#0f172a;">6. Cabin Cleanliness &amp; Fire Extinguisher</strong>
+                  <span style="font-size:11.5px;color:#64748b;">Aisles free of obstructions; 6 kg ABC dry powder extinguisher certified.</span>
+                </div>
+              </label>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:12px;">
+              <button type="button" class="btn-modal-cancel" onclick="DriverApp.closeModal('driverModal_preTrip')">Cancel</button>
+              <button type="button" class="btn-save-driver-settings" id="btnConfirmStartTrip" disabled onclick="DriverApp.confirmStartTrip()" style="background:#10b981;">
+                ✓ Certify &amp; Start Scheduled Trip
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW SCREEN 2: QR TICKET SCANNER MODAL -->
+      <div class="modal-backdrop hidden" id="driverModal_qrScanner" onclick="DriverApp.closeModal('driverModal_qrScanner')">
+        <div class="driver-modal-card-box" style="max-width:480px;text-align:center;" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag" style="background:#dcfce7;color:#15803d;">Instant Pass Verification</span>
+              <h3>QR Ticket Camera Scanner</h3>
+              <p>Scan passenger digital QR code or enter PNR</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="DriverApp.closeModal('driverModal_qrScanner')">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            
+            <!-- Camera Viewfinder Simulator -->
+            <div style="width:100%;height:220px;background:#0f172a;border-radius:16px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:2px solid #38bdf8;">
+              <!-- Animated Laser Line -->
+              <div style="position:absolute;left:10%;right:10%;height:2px;background:#38bdf8;box-shadow:0 0 12px #38bdf8;animation:laserScan 2s infinite ease-in-out;"></div>
+              
+              <!-- Reticle Corner Frames -->
+              <div style="width:160px;height:160px;border:2px dashed rgba(255,255,255,0.4);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:32px;">📷</span>
+              </div>
+              <span style="position:absolute;bottom:10px;font-size:11px;color:#94a3b8;font-weight:600;">Point camera at passenger boarding pass</span>
+            </div>
+
+            <!-- Manual PNR input fallback -->
+            <div style="margin-bottom:16px;text-align:left;">
+              <label style="display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;">Manual PNR / Ticket Code</label>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="driverQrManualInput" placeholder="e.g. BST-288883" style="flex:1;padding:10px 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;font-family:monospace;font-weight:700;outline:none;">
+                <button type="button" class="btn-save-driver-settings" onclick="DriverApp.verifyTicketCode(document.getElementById('driverQrManualInput').value)">
+                  Verify ➔
+                </button>
+              </div>
+            </div>
+
+            <button type="button" class="btn-modal-cancel" style="width:100%;" onclick="DriverApp.closeModal('driverModal_qrScanner')">Close Scanner</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW SCREEN 3: 40-SEAT CABIN SEATING CONFIGURATION MODAL -->
+      <div class="modal-backdrop hidden" id="driverModal_seatConfig" onclick="DriverApp.closeModal('driverModal_seatConfig')">
+        <div class="driver-modal-card-box" style="max-width:620px;" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag">Fleet Layout</span>
+              <h3>Tata Starbus Ultra — 40-Seat Cabin Layout</h3>
+              <p>Bus UK-07-DR-4567 &bull; 2x2 Seating Matrix with Real Passenger Allocation</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="DriverApp.closeModal('driverModal_seatConfig')">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            
+            <!-- Legend Bar -->
+            <div style="display:flex;gap:14px;align-items:center;justify-content:center;margin-bottom:16px;padding:8px;background:#f8fafc;border-radius:10px;font-size:12px;font-weight:700;">
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <span style="width:12px;height:12px;border-radius:3px;background:#10b981;"></span>
+                <span>Available (22)</span>
+              </span>
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <span style="width:12px;height:12px;border-radius:3px;background:#2563eb;"></span>
+                <span>Booked / Occupied (18)</span>
+              </span>
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;"></span>
+                <span>Special / Ladies</span>
+              </span>
+            </div>
+
+            <!-- Front Driver Cockpit indicator -->
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#f1f5f9;border-radius:8px;margin-bottom:12px;font-size:12px;color:#475569;font-weight:700;">
+              <span>🚪 Front Entry Door</span>
+              <span>👨‍✈️ Driver Steering Wheel</span>
+            </div>
+
+            <!-- Scrollable Cabin Seat Layout Grid -->
+            <div id="seatGridContainer" style="display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;padding:8px;">
+              <!-- Populated dynamically by DriverApp.openSeatConfigModal() -->
+            </div>
+
+            <div style="margin-top:16px;text-align:right;">
+              <button type="button" class="btn-save-driver-settings" onclick="DriverApp.closeModal('driverModal_seatConfig')">Done</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW SCREEN 4: DRIVER CREDENTIALS & FLEET PROFILE MODAL -->
+      <div class="modal-backdrop hidden" id="driverModal_profile" onclick="closeDriverProfileModal(event)">
+        <div class="driver-modal-card-box" style="max-width:540px;" onclick="event.stopPropagation()">
+          <div class="driver-modal-head">
+            <div class="modal-head-title-wrap">
+              <span class="modal-pill-tag">Captain Credentials</span>
+              <h3>Driver &amp; Assigned Vehicle Profile</h3>
+              <p>Uttarakhand State Road Transport Corporation Record</p>
+            </div>
+            <button type="button" class="btn-driver-modal-close" onclick="closeDriverProfileModal()">✕</button>
+          </div>
+          <div class="driver-modal-body">
+            <div style="display:flex;align-items:center;gap:16px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:16px;">
+              <img src="assets/onboarding/who_driver_thumb.jpg" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #2563eb;" alt="Driver">
+              <div>
+                <strong style="font-size:18px;color:#0f172a;" id="profileModalDriverName">Shivansh Mourya</strong>
+                <div style="font-size:12px;color:#2563eb;font-weight:700;">Mountain Transit Authority &bull; Master Captain</div>
+                <div style="font-size:11.5px;color:#64748b;margin-top:2px;">ID: UK-DRV-2026-8842 &bull; Active &bull; Verified</div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+              <div style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;">
+                <span style="font-size:11px;color:#64748b;display:block;">Commercial License</span>
+                <strong style="font-size:13px;color:#0f172a;" id="profileModalDl">DL-042023001894</strong>
+              </div>
+              <div style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;">
+                <span style="font-size:11px;color:#64748b;display:block;">License Expiry</span>
+                <strong style="font-size:13px;color:#0f172a;">28 Oct 2030</strong>
+              </div>
+              <div style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;">
+                <span style="font-size:11px;color:#64748b;display:block;">Assigned Fleet Bus</span>
+                <strong style="font-size:13px;color:#2563eb;">UK-07-DR-4567</strong>
+              </div>
+              <div style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;">
+                <span style="font-size:11px;color:#64748b;display:block;">Bus Model</span>
+                <strong style="font-size:13px;color:#0f172a;">Tata Starbus Ultra 40S</strong>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;">
+              <button type="button" class="btn-modal-cancel" style="color:#ef4444;border:1px solid #fca5a5;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;background:#fff;" onclick="logout()">🚪 End Shift &amp; Logout</button>
+              <button type="button" class="btn-save-driver-settings" onclick="closeDriverProfileModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =========================================================================
+         7. STOP DETAILS MODAL (POPUP ON MAP STOP CLICK)
+         ========================================================================= -->
+    <div class="modal-backdrop hidden" id="stopDetailsModal" onclick="closeStopDetailsModal(event)">
+      <div class="stop-details-modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card-header">
+          <div class="modal-title-wrap">
+            <span class="modal-badge-pill">🚏 Bus Stop</span>
+            <h3 id="stopModalName">Clock Tower (Ghanta Ghar)</h3>
+            <p id="stopModalServingRoutes">Serving: Route 102, Route 105, Route 204</p>
+          </div>
+          <button type="button" class="btn-modal-close" onclick="closeStopDetailsModal()">✕</button>
+        </div>
+        <div class="stop-modal-body">
+          <h4 class="section-heading">Upcoming Buses at this Stop</h4>
+          <div class="stop-upcoming-buses-list" id="stopModalUpcomingList">
+            <!-- Dynamically populated from /api/v2/stops/:id/upcoming -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         8. ADMIN CRUD MODAL (CREATE / EDIT FORM)
+         ========================================================================= -->
+    <div class="modal-backdrop hidden" id="adminCrudModal" onclick="closeAdminCrudModal(event)">
+      <div class="admin-crud-modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card-header">
+          <div class="modal-title-wrap">
+            <h3 id="adminCrudModalTitle">Add New Entity</h3>
+            <p id="adminCrudModalSubtitle">Enter details below</p>
+          </div>
+          <button type="button" class="btn-modal-close" onclick="closeAdminCrudModal()">✕</button>
+        </div>
+        <form class="admin-crud-form" id="adminCrudForm" onsubmit="handleAdminCrudSubmit(event)">
+          <div class="crud-form-fields" id="adminCrudFields">
+            <!-- Dynamically generated fields for bus/route/stop/driver -->
+          </div>
+          <div class="modal-footer-bar">
+            <button type="button" class="btn-cancel" onclick="closeAdminCrudModal()">Cancel</button>
+            <button type="submit" class="btn-confirm-booking" id="btnAdminCrudSubmit">Save & Publish</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         9. BUS TIMETABLE & SEAT BOOKING MODAL
+         ========================================================================= -->
+    <div class="modal-backdrop hidden" id="busScheduleModal" onclick="closeScheduleModal(event)">
+      <div class="bus-modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card-header">
+          <div class="modal-title-wrap">
+            <span class="modal-badge-pill" id="modalBusStatusPill">Live Bus</span>
+            <h3 id="modalBusName">Uttarakhand Parivahan (UTC)</h3>
+            <p id="modalBusRoute">Dehradun ISBT ➔ Bilaspur (Via Roorkee, Haridwar, Meerut)</p>
+          </div>
+          <button type="button" class="btn-modal-close" onclick="closeScheduleModal()">✕</button>
+        </div>
+
+        <div class="modal-body-scroll">
+          <!-- Timetable Timeline -->
+          <div class="timetable-section">
+            <h4 class="section-heading">Route Timeline & Stops</h4>
+            <div class="timeline-stepper" id="modalTimelineStepper">
+              <!-- Rendered dynamically with stops and arrival times -->
+            </div>
+          </div>
+
+          <!-- Bus Amenities -->
+          <div class="amenities-section">
+            <h4 class="section-heading">Vehicle Amenities</h4>
+            <div class="amenities-grid">
+              <div class="amenity-item"><span class="amenity-icon">❄️</span><span>Air Conditioned</span></div>
+              <div class="amenity-item"><span class="amenity-icon">💺</span><span>Push-back Sleeper</span></div>
+              <div class="amenity-item"><span class="amenity-icon">🔋</span><span>Charging USB Ports</span></div>
+              <div class="amenity-item"><span class="amenity-icon">📶</span><span>Onboard WiFi</span></div>
+              <div class="amenity-item"><span class="amenity-icon">📍</span><span>GPS Live Tracking</span></div>
+              <div class="amenity-item"><span class="amenity-icon">💧</span><span>Water Bottle</span></div>
+            </div>
+          </div>
+
+          <!-- Seat Selection Grid -->
+          <div class="seat-select-section">
+            <h4 class="section-heading">Select Your Seat (<span id="selectedSeatLabel">12A Selected</span>)</h4>
+            <div class="bus-seats-cabin" id="busSeatsCabin">
+              <!-- 2x2 interactive seats grid -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-bar">
+          <div class="modal-fare-calc">
+            <span class="fare-label">Total Fare</span>
+            <span class="fare-amount" id="modalTotalFare">₹520</span>
+          </div>
+          <button type="button" class="btn-confirm-booking" onclick="confirmTicketBooking()">
+            <span>Confirm & Book Seat</span> ➔
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         DIGITAL VERIFIABLE TICKET MODAL (PASSENGER PASS & QR CODE)
+         ========================================================================= -->
+    <div class="modal-backdrop hidden" id="passengerTicketModal" onclick="closePassengerTicketModal(event)">
+      <div class="bus-modal-card" style="max-width:480px;text-align:center;overflow:hidden;border:1px solid rgba(226,232,240,0.8);box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+        <!-- Header banner -->
+        <div style="background:linear-gradient(135deg,#065f46,#10b981);padding:22px 20px;color:#fff;position:relative;">
+          <button type="button" class="btn-modal-close" style="position:absolute;top:16px;right:16px;color:#fff;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer;" onclick="closePassengerTicketModal()">✕</button>
+          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.22);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">
+            <span>✓ VERIFIED DIGITAL PASS</span>
+          </div>
+          <h3 id="ticketModalBusName" style="margin:0;font-size:20px;font-weight:800;color:#fff;">Uttarakhand Parivahan (UTC)</h3>
+          <p id="ticketModalRouteName" style="margin:4px 0 0;font-size:13px;opacity:0.92;">Dehradun ISBT ➔ Bilaspur Express</p>
+        </div>
+
+        <div class="modal-body-scroll" style="padding:18px 22px;">
+          <!-- QR Code Container -->
+          <div style="display:flex;flex-direction:column;align-items:center;margin:4px 0 16px;">
+            <div id="ticketQrCodeContainer" style="padding:12px;background:#fff;border-radius:16px;border:2px dashed #cbd5e1;box-shadow:0 4px 14px rgba(0,0,0,0.06);display:inline-flex;align-items:center;justify-content:center;min-width:140px;min-height:140px;">
+              <!-- Real SVG QR code rendered here -->
+            </div>
+            <div style="margin-top:10px;">
+              <span style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:600;letter-spacing:0.6px;">Ticket Reference (PNR)</span>
+              <strong id="ticketModalPnr" style="display:block;font-size:20px;font-weight:800;color:#0f172a;letter-spacing:1px;font-family:monospace;">BST-288883</strong>
+            </div>
+          </div>
+
+          <!-- Trip details breakdown card -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;text-align:left;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div>
+                <span style="display:block;font-size:11px;color:#64748b;text-transform:uppercase;">Passenger</span>
+                <strong id="ticketModalPassenger" style="font-size:14px;color:#0f172a;">Vivek</strong>
+              </div>
+              <div style="text-align:right;">
+                <span style="display:block;font-size:11px;color:#64748b;text-transform:uppercase;">Seat Number</span>
+                <strong id="ticketModalSeat" style="font-size:16px;color:#059669;font-weight:800;">12A</strong>
+              </div>
+            </div>
+
+            <div style="border-top:1px dashed #cbd5e1;padding-top:12px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="color:#10b981;font-size:14px;">📍</span>
+                <div>
+                  <span style="font-size:10px;color:#64748b;text-transform:uppercase;">Boarding Stop</span>
+                  <strong id="ticketModalBoardingStop" style="display:block;font-size:13px;color:#1e293b;">Clock Tower (Ghanta Ghar)</strong>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="color:#ef4444;font-size:14px;">🏁</span>
+                <div>
+                  <span style="font-size:10px;color:#64748b;text-transform:uppercase;">Destination</span>
+                  <strong id="ticketModalDestStop" style="display:block;font-size:13px;color:#1e293b;">Rajpur Road</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style="border-top:1px dashed #cbd5e1;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <span style="font-size:11px;color:#64748b;text-transform:uppercase;">Fare Paid</span>
+                <strong id="ticketModalFare" style="display:block;font-size:15px;color:#0f172a;">₹55.00</strong>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:11px;color:#64748b;text-transform:uppercase;">Boarding Status</span>
+                <strong id="ticketModalStatus" style="display:inline-block;padding:3px 10px;border-radius:12px;background:#ecfdf5;color:#059669;font-size:12px;font-weight:700;">CONFIRMED</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-bar" style="justify-content:center;gap:12px;padding:14px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;">
+          <button type="button" class="btn-input-gps" style="height:40px;padding:0 20px;border-radius:10px;background:#0f172a;color:#fff;border:none;font-weight:700;font-size:13px;cursor:pointer;" onclick="closePassengerTicketModal()">
+            Done & Track Bus ➔
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         10. FULL SCREEN INTERACTIVE ROUTE MAP MODAL
+         ========================================================================= -->
+    <div class="modal-backdrop hidden" id="fullRouteMapModal" onclick="closeFullRouteMapModal(event)">
+      <div class="full-route-modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card-header">
+          <div class="modal-title-wrap">
+            <span class="modal-badge-pill">🗺️ Live Transit Route Preview</span>
+            <h3 id="fullRouteModalTitle">Dehradun - Rishikesh Corridor</h3>
+            <p id="fullRouteModalSubtitle">Interactive full corridor route, intermediate stops, and live path</p>
+          </div>
+          <button type="button" class="btn-modal-close" onclick="closeFullRouteMapModal()">✕</button>
+        </div>
+        <div class="full-route-modal-body">
+          <div id="fullRouteModalMap" style="width:100%;height:100%;"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Clean Floating Toast Feedback -->
+  <div class="toast-stream" id="toastStream" aria-live="polite"></div>
+
+  <!-- Map modules (provider abstraction, GPS, controller) -->
+  <script src="map/mapProvider.js"></script>
+  <script src="map/locationService.js"></script>
+  <script src="map/passengerMap.js"></script>
+  <script src="map/mapRoutePreview.js"></script>
+
+
+
+  <!-- Real Minimal Application Script -->
+  <script src="app.js"></script>
+
+  <!-- Modern Driver Application Controller -->
+  <script src="driverApp.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          console.log('[PWA] ServiceWorker registered successfully:', reg.scope);
+        }).catch((err) => {
+          console.log('[PWA] ServiceWorker registration failed:', err);
+        });
+      });
+    }
+
+    // Capture install prompt for seamless 1-tap installation
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.style.display = 'flex';
+    });
+
+    window.triggerPWAInstall = function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            console.log('[PWA] User accepted the install prompt');
+          }
+          deferredPrompt = null;
+          const banner = document.getElementById('pwaInstallBanner');
+          if (banner) banner.style.display = 'none';
+        });
+      }
+    };
+  </script>
+</body>
+</html>

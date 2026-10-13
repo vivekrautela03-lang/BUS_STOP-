@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260" width="100%" height="100%">
+  <defs>
+    <filter id="pucShad" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect x="2" y="2" width="416" height="256" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#pucShad)"/>
+
+  <!-- Top Ribbon -->
+  <rect x="2" y="2" width="416" height="32" rx="14" fill="#0f766e"/>
+  <rect x="2" y="20" width="416" height="14" fill="#0f766e"/>
+  <text x="210" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">POLLUTION UNDER CONTROL CERTIFICATE (PUC)</text>
+  <text x="210" y="30" font-family="sans-serif" font-size="7.5" font-weight="700" fill="#99f6e4" text-anchor="middle">MINISTRY OF ROAD TRANSPORT &amp; HIGHWAYS (PARIVAHAN)</text>
+
+  <!-- Reg Box -->
+  <g transform="translate(18, 44)">
+    <rect x="0" y="0" width="384" height="42" rx="6" fill="#f0fdfa" stroke="#14b8a6" stroke-width="1"/>
+    <text x="14" y="26" font-family="monospace" font-size="13" font-weight="900" fill="#115e59">PUC NO: UK07-PUC-9920148</text>
+    <rect x="270" y="10" width="100" height="24" rx="12" fill="#14b8a6"/>
+    <text x="320" y="26" font-family="sans-serif" font-size="8.5" font-weight="800" fill="#ffffff" text-anchor="middle">BS-VI PASSED ✓</text>
+  </g>
+
+  <!-- Emission Details -->
+  <g transform="translate(18, 96)">
+    <rect x="0" y="0" width="384" height="106" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+
+    <text x="14" y="20" font-size="8" font-weight="700" fill="#64748b">Vehicle Registration:</text>
+    <text x="110" y="20" font-family="monospace" font-size="8.5" font-weight="800" fill="#0f172a">UK07 PA 1234</text>
+
+    <text x="14" y="38" font-size="8" font-weight="700" fill="#64748b">Fuel &amp; Norms:</text>
+    <text x="110" y="38" font-size="8.5" font-weight="800" fill="#115e59">Diesel / Bharat Stage VI</text>
+
+    <text x="14" y="56" font-size="8" font-weight="700" fill="#64748b">Smoke Density (Light Absorption):</text>
+    <text x="190" y="56" font-size="8.5" font-weight="800" fill="#15803d">0.42 m⁻¹ (Prescribed Limit: 1.62)</text>
+
+    <text x="14" y="74" font-size="8" font-weight="700" fill="#64748b">Test Date &amp; Time:</text>
+    <text x="110" y="74" font-size="8.5" font-weight="700" fill="#0f172a">10-06-2025 11:24 AM</text>
+
+    <text x="14" y="92" font-size="8" font-weight="700" fill="#64748b">Valid Upto:</text>
+    <text x="110" y="92" font-size="8.5" font-weight="800" fill="#0f766e">09-06-2026</text>
+  </g>
+
+  <!-- Green Verified Badge -->
+  <g transform="translate(382, 222)">
+    <circle cx="14" cy="14" r="14" fill="#10b981"/>
+    <path d="M8 14 L12 18 L20 10" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

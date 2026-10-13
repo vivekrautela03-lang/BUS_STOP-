@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "BUS STOP",
+    "slug": "bus-stop",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.busstop.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "BUS STOP uses your location to discover nearby stops, calculate journey distance, and guide mountain corridor transit.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "BUS STOP transmits live GPS coordinates during certified driver shifts.",
+        "NSCameraUsageDescription": "BUS STOP requires camera access to scan and verify passenger QR boarding tickets."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundImage": "./assets/adaptive-icon-background.png",
+        "backgroundColor": "#142B45"
+      },
+      "package": "com.busstop.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "supabaseUrl": "https://tmacsdrjzkgykfkkrhgm.supabase.co",
+      "supabaseAnonKey": "sb_publishable_RrT7Aaxv91wXrG5BZhXIYA_k9kdp6r0",
+      "apiBaseUrl": "http://localhost:3000"
+    }
+  }
+}
